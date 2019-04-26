@@ -5,4 +5,4 @@ var server = http.createServer(function(request, response){
   response.write('Hello World\n');
   response.end();
 });
-serever.listen(process.env.PORT || 8080);
+server.listen(process.env.PORT || 8080);
