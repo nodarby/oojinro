@@ -1,8 +1,9 @@
 <template>
   <div>
-    あなたの名前は？？
+    あなた({{ uuid }})の名前は？？
     <input type="text" v-model="userName">
     <input type="button" value="OK" @click="done()">
+    現在のルーム: {{ roomName }}
   </div>
 </template>
 <script>
@@ -13,7 +14,7 @@
         set: function (value) { this.$store.commit('user/name', value) }
       },
       uuid: function () {
-        return this.$store.getters['name/uuid']
+        return this.$store.getters['user/uuid']
       },
       roomName: function () {
         return this.$store.getters['room/name']
