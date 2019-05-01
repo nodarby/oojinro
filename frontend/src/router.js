@@ -21,6 +21,13 @@ export default new Router({
       component: () => import('./views/Sample.vue')
     },
     {
+      path: '/room/:name',
+      beforeEnter: (to, from, next) => {
+        console.log(to.params.name)
+        next('/')
+      }
+    },
+    {
       path: '*',
       component: () => import('./views/404.vue')
     }

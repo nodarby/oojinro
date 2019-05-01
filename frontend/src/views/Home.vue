@@ -21,6 +21,12 @@
     methods: {
       createRoom: function () {
         console.log('creating room')
+        const socket = this.$store.getters['socket/socket']
+        socket.emit('requestRoomName')
+        socket.on('responseRoomName', function (data) {
+          console.log(data)
+        })
+        // this.$router.push({path: '/room/'+ ('0000'+Math.floor(Math.random() * 10000)).slice(-4) + ('0000'+Math.floor(Math.random() * 10000)).slice(-4)})
       },
       findRoom: function () {
         console.log('finding room: ' + this.roomName)
