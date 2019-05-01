@@ -5,9 +5,8 @@ var http = require('http').Server(app);
 const io = require('socket.io')(http);
 const PORT = process.env.PORT || 8080;
 var NCMB = require("ncmb");
-var ncmb = new NCMB(process.env.APPLICATION_KEY,process.env.CLIANT_KEY);
+var ncmb = new NCMB(process.env.APPLICATION_KEY,process.env.CLIENT_KEY);
 var roomClass = ncmb.DataStore("room");
-
   let product = new roomClass();
 
 
@@ -20,30 +19,43 @@ app.use(function(req, res, next) {
 });
 
 io.on('connection',function(socket){
-  socket.on("requestRoomName",function(){
-    console.log("受け取ったよ～");
+  socket.on('requestCreateRoom',function(uuid){
+    //部屋番号をランダムに作成してクライアントに伝える。
     var  l = 8;
     var c = "0123456789"
-    var cl = c.length;
     var num = "";
+    var cl = c.length;
     for(var i=0; i<l;i++){
       num += c[Math.floor(Math.random()*cl)];
     }
-    socket.emit("responseRoomName",num);
-    console.log("送ったよ～");
+    //ニフクラのデータベースを検索し重複がないか確認。
+    //最初にすべてのデータを持ってくると非同期処理にならない。それを参照。
+    product.set("room_name",num);
+    product.set("menbers",{uuid:uuid});
+    product.save();
+    socket.emit("responseCreateName",num);
+
+/*      //ランダムトークン作成
+      var  l = 10;
+      var c = "abcdefghijklmnopqrstuvwxyz0123456789";
+      var cl = c.length;
+      var token = "";
+      for(var i=0; i<l;i++){
+        token += c[Math.floor(Math.random()*cl)];
+      }
+      */
+    });
+
+    //役職振り分け
+    socket.on("スタートの合図的な",function(){
+
+    })
+
+    //役職ごとの処理
+
+
   });
 
-
-/*  socket.on('createRoom',function(create){
-    product.set("room_id",create.body.room_id);
-    product.set("name",create.body.name);
-    product.save();
-  });*/
-
-//  socket.on('message',function(msg){
-//    console.log('message:'+msg);
-//  });
-});
 
 http.listen(PORT, function(){
     console.log('server listening. Port:' + PORT);
