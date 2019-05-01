@@ -16,7 +16,7 @@
       }
     },
     mounted: function () {
-      this.socket = io()
+      this.socket = io.connect(process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/')
       console.log(this.socket)
     }
   }
