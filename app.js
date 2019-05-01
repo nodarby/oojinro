@@ -49,6 +49,7 @@ io.on('connection',function(socket){
             }else{
             results.set("members",results.members)
             console.log(results); // 検索結果の件数を表示
+            socket.join(person.roomName);
             socket.emit("responseEnterRoom",{roomName:person.roomName,members:results.members});
             }
           }).catch(function(err){
@@ -68,6 +69,12 @@ io.on('connection',function(socket){
       //ユーザの名前登録
         roomClass.equalTo("room_name",person.roomName)
             .fetch()
+            .then(function(result){
+              const index = result.members.findIndex(function(p){ return p.uuid === person.uuid })
+              result.members[index].userName = person.userName
+              console.log(result)
+              result.update();
+            })
       })
 
     socket.on("requestExitRoom",function(person){
