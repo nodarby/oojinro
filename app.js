@@ -47,8 +47,9 @@ io.on('connection',function(socket){
             if(0==Object.keys(results).length){
               socket.emit("responseEnterRoom",null);
             }else{
-             console.log(results); // 検索結果の件数を表示
-             socket.emit("responseEnterRoom",{roomName:person.roomName,members:results.members});
+            results.set("members",results.members)
+            console.log(results); // 検索結果の件数を表示
+            socket.emit("responseEnterRoom",{roomName:person.roomName,members:results.members});
             }
           }).catch(function(err){
             console.log(err);
@@ -63,8 +64,23 @@ io.on('connection',function(socket){
       product.save();*/
 
       });
+    socket.on("requestUpdateUser",function(person){
+      //ユーザの名前登録
+        roomClass.equalTo("room_name",person.roomName)
+            .fetch()
+      })
 
+    socket.on("requestExitRoom",function(person){
+      roomClass.equalTo("room_name",person.roomName)
+          .fetch()
+          .then(function(result){
+            result.delete();
+          })
+          .catch(function(err){
 
+          });
+    })
+    //部屋の削除
 
 
     //役職振り分け
