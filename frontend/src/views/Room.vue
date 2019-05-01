@@ -18,16 +18,17 @@
     created: function () {
       const socket = this.$store.getters['socket/socket']
 
-      const oldRoomName = this.$store.getters['user/name']
+      const oldRoomName = this.$store.getters['room/name']
       const newRoomName = this.$router.history.current.params.name
 
       // 部屋入室の動作
       console.log('entering room:'+newRoomName)
 
       // 違う部屋に入っていた場合，そこから退出する
-      if (oldRoomName !== '' && oldRoomName !== newRoomName)
+      if (oldRoomName !== '' && oldRoomName !== newRoomName) {
+        console.log('oldRoomName:'+ oldRoomName)
         socket.emit('requestExitRoom', {uuid: this.uuid, roomName: oldRoomName})
-
+      }
       // 新しい部屋に入る
       socket.emit('requestEnterRoom', {uuid: this.uuid, roomName: newRoomName})
 
