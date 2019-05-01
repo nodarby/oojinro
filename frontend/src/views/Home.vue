@@ -24,6 +24,7 @@
         console.log('creating room')
         const socket = this.$store.getters['socket/socket']
         // 部屋を作る動作
+        console.log(this.$store.getters['user/uuid'])
         socket.emit('requestCreateRoom', this.$store.getters['user/uuid'])
         // 部屋を作り終えたら
         socket.once('responseCreateRoom', function (roomName) {

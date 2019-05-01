@@ -8,6 +8,10 @@ export default {
   getters: {
     name: (state) => {
       return state.name
+    },
+    uuid: (state) => {
+      // もしも空ならuuidを生成する部分を作成
+      return state.uuid
     }
   },
   mutations: {
