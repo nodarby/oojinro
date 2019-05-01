@@ -7,6 +7,7 @@
   export default {
     mounted: function () {
       this.$store.commit('socket/connect')
+      this.$store.commit('user/uuid')
     }
   }
 </script>

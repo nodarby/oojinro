@@ -1,5 +1,5 @@
 const state = {
-  name: 'sampleroom'
+  name: ''
 }
 export default {
   namespaced: true,
