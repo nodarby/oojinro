@@ -7,3 +7,5 @@ Thumbs.db
 .vagrant/
 
 node_modules/
+
+.env
