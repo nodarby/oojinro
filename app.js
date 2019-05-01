@@ -7,7 +7,6 @@ const PORT = process.env.PORT || 8080;
 var NCMB = require("ncmb");
 var ncmb = new NCMB(process.env.APPLICATION_KEY,process.env.CLIENT_KEY);
 var roomClass = ncmb.DataStore("room");
-  let product = new roomClass();
 
 
 
@@ -21,6 +20,7 @@ app.use(function(req, res, next) {
 io.on('connection',function(socket){
   socket.on('requestCreateRoom',function(uuid){
     //部屋番号をランダムに作成してクライアントに伝える。
+    let product = new roomClass();
     var  l = 8;
     var c = "0123456789"
     var num = "";
