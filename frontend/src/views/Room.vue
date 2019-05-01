@@ -1,51 +1,59 @@
 <template>
   <div>
     <div>Room {{ roomName }}</div>
-    <div>User {{ userName }}</div>
+    <div>User {{ userName }}({{ uuid }})</div>
   </div>
 </template>
 <script>
   export default {
     computed: {
-      roomName: function () {return this.$store.getters['room/name']},
-      userName: function () {return this.$store.getters['user/name']}
+      uuid: function () {return this.$store.getters['user/uuid']}
+    },
+    data () {
+      return {
+        roomName: '',
+        userName: ''
+      }
     },
     created: function () {
       const socket = this.$store.getters['socket/socket']
 
-      // 新しい部屋の名前
-      const roomName = this.$router.history.current.params.name
+      const oldRoomName = this.$store.getters['user/name']
+      const newRoomName = this.$router.history.current.params.name
 
       // 部屋入室の動作
-      console.log('entering room:'+roomName)
+      console.log('entering room:'+newRoomName)
 
       // 違う部屋に入っていた場合，そこから退出する
-      if (this.roomName !== '' && this.roomName !== roomName)
-        socket.emit('requestExitRoom', {uuid: this.$store.getters['user/uuid'], roomName: this.roomName})
+      if (oldRoomName !== '' && oldRoomName !== newRoomName)
+        socket.emit('requestExitRoom', {uuid: this.uuid, roomName: oldRoomName})
 
       // 新しい部屋に入る
-      socket.emit('requestEnterRoom', {uuid: this.$store.getters['user/uuid'], roomName: roomName})
+      socket.emit('requestEnterRoom', {uuid: this.uuid, roomName: newRoomName})
 
       // 部屋入室の結果受け取り
       const that = this
       socket.once('responseEnterRoom', function (data) {
         if (data !== null){
-          // 部屋に入室できた
-          that.$store.commit('room/name', roomName)
-
-          console.log("entered room "+roomName)
+          console.log("success entering room "+data.roomName)
           console.log(data)
 
-          if (that.$store.getters['user/name'] === '') { // ユーザーの名前が存在しない場合
+          // 部屋に入室できた
+          that.roomName = data.roomName
+          that.$store.commit('room/name', data.roomName)
+
+          // ユーザーの名前の処理
+          that.userName = that.$store.getters['user/name']
+          if (that.userName === '') { // ユーザーの名前が存在しない場合
             console.log('username is not existed')
-            that.$router.push({path: '/profile', query: {'redirect_to': '/room/'+roomName}})
+            that.$router.push({path: '/profile', query: {'redirect_to': '/room/'+that.roomName}})
             return
           }else{ // ユーザーの名前が存在する場合
-            socket.emit('requestUpdateUser', { uuid: this.$store.getters['user/uuid'], roomName: roomName, userName: that.$store.getters['user/name'] })
+            socket.emit('requestUpdateUser', { uuid: that.uuid, roomName: that.roomName, userName: that.userName })
           }
         }else{
           // 入室できなかった
-          console.log('cannot enter room:'+roomName)
+          console.log('failed entering room:'+newRoomName)
           that.$store.commit('room/name', '')
           that.$router.push({path: '/'})
         }
