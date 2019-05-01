@@ -21,15 +21,19 @@
     methods: {
       createRoom: function () {
         const that = this
-        console.log('creating room')
+        console.log('creating room '+this.$store.getters['user/uuid'])
         const socket = this.$store.getters['socket/socket']
         // 部屋を作る動作
         socket.emit('requestCreateRoom', this.$store.getters['user/uuid'])
         // 部屋を作り終えたら
         socket.once('responseCreateRoom', function (roomName) {
-          console.log('created room:'+roomName)
-          // 部屋に入る
-          that.$router.push({path: '/room/'+roomName})
+          if (roomName !== null){
+            console.log('created room:'+roomName)
+            // 部屋に入る
+            that.$router.push({path: '/room/'+roomName})
+          }else{
+            alert('部屋が作れませんでした！')
+          }
         })
       },
       findRoom: function () {
