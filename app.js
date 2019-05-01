@@ -31,7 +31,7 @@ io.on('connection',function(socket){
     //ニフクラのデータベースを検索し重複がないか確認。
     //最初にすべてのデータを持ってくると非同期処理にならない。それを参照。
     product.set("room_name",num);
-    product.set("members",[{uuid:uuid}]);
+    product.set("members",[]);
     product.save().then(function(res){
       socket.emit("responseCreateRoom", num);
     }).catch(function(err){
@@ -47,7 +47,8 @@ io.on('connection',function(socket){
             if(0==Object.keys(results).length){
               socket.emit("responseEnterRoom",null);
             }else{
-            results.set("members",results.members)
+            results.members.push({uuid:person.uuid})
+            results.update();
             console.log(results); // 検索結果の件数を表示
             socket.join(person.roomName);
             socket.emit("responseEnterRoom",{roomName:person.roomName,members:results.members});
