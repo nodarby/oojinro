@@ -30,7 +30,7 @@ io.on('connection',function(socket){
     }
     //ニフクラのデータベースを検索し重複がないか確認。
     //最初にすべてのデータを持ってくると非同期処理にならない。それを参照。
-    socket.emit("responseCreateName",num);
+    socket.emit("responseCreateRoom",num);
     product.set("room_name",num);
     product.set("members",{uuid:uuid});
     product.save();
