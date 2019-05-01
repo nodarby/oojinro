@@ -30,21 +30,42 @@ io.on('connection',function(socket){
     }
     //ニフクラのデータベースを検索し重複がないか確認。
     //最初にすべてのデータを持ってくると非同期処理にならない。それを参照。
-    socket.emit("responseCreateRoom",num);
     product.set("room_name",num);
-    product.set("members",{uuid:uuid});
-    product.save();
-
-/*      //ランダムトークン作成
-      var  l = 10;
-      var c = "abcdefghijklmnopqrstuvwxyz0123456789";
-      var cl = c.length;
-      var token = "";
-      for(var i=0; i<l;i++){
-        token += c[Math.floor(Math.random()*cl)];
-      }
-      */
+    product.set("members",[{uuid:uuid}]);
+    product.save().then(function(res){
+      socket.emit("responseCreateRoom", num);
+    }).catch(function(err){
+      socket.emit("responseCreateRoom", null);
     });
+  });
+
+    socket.on('requestEnterRoom',function(person){
+      //受け取った部屋番号が存在するか判定
+      roomClass.equalTo("room_name",person.roomName)
+          .fetch()
+          .then(function(results){
+            if(0==Object.keys(results).length){
+              socket.emit("responseEnterRoom",null);
+            }else{
+             console.log(results); // 検索結果の件数を表示
+             socket.emit("responseEnterRoom",{roomName:person.roomName,members:results.members});
+            }
+          }).catch(function(err){
+            console.log(err);
+            socket.emit("responseEnterRoom",null);
+          });
+
+
+      //ニフクラのデータベースを検索し存在するか確認。
+      //最初にすべてのデータを持ってくると非同期処理にならない。それを参照。
+/*      product.set("room_name",num);
+      product.set("members",{uuid:uuid});
+      product.save();*/
+
+      });
+
+
+
 
     //役職振り分け
     socket.on("スタートの合図的な",function(){
