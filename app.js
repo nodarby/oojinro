@@ -19,7 +19,7 @@ app.use(function(req, res, next) {
 });
 
 io.on('connection',function(socket){
-  socket.on("requestRoomName",function(){
+  socket.on('requestCreateRoom',function(uuid){
     //部屋番号をランダムに作成してクライアントに伝える。
     var  l = 8;
     var c = "0123456789"
@@ -30,12 +30,12 @@ io.on('connection',function(socket){
     }
     //ニフクラのデータベースを検索し重複がないか確認。
     //最初にすべてのデータを持ってくると非同期処理にならない。それを参照。
-    socket.emit("responseRoomName",num);
-  });
+    product.set("room_name",num);
+    product.set("menbers",{uuid:uuid});
+    product.save();
+    socket.emit("responseCreateName",num);
 
-  socket.on('createRoom',function(create){
-      product.set("room_name",create.body.room_name);
-      //ランダムトークン作成
+/*      //ランダムトークン作成
       var  l = 10;
       var c = "abcdefghijklmnopqrstuvwxyz0123456789";
       var cl = c.length;
@@ -43,9 +43,17 @@ io.on('connection',function(socket){
       for(var i=0; i<l;i++){
         token += c[Math.floor(Math.random()*cl)];
       }
-      product.set("members",{name:create.body.name,token:token});
-      product.save();
+      */
+    });
+
+    //役職振り分け
+    socket.on("スタートの合図的な",function(){
+
     })
+
+    //役職ごとの処理
+
+
   });
 
 
