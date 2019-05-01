@@ -20,16 +20,21 @@
     },
     methods: {
       createRoom: function () {
+        const that = this
         console.log('creating room')
         const socket = this.$store.getters['socket/socket']
-        socket.emit('requestRoomName')
-        socket.on('responseRoomName', function (data) {
-          console.log(data)
+        // 部屋を作る動作
+        socket.emit('requestCreateRoom', this.$store.getters['user/uuid'])
+        // 部屋を作り終えたら
+        socket.once('responseCreateRoom', function (roomName) {
+          // 部屋に入る
+          that.$router.push({path: '/room/'+roomName})
         })
-        // this.$router.push({path: '/room/'+ ('0000'+Math.floor(Math.random() * 10000)).slice(-4) + ('0000'+Math.floor(Math.random() * 10000)).slice(-4)})
       },
       findRoom: function () {
         console.log('finding room: ' + this.roomName)
+        // 部屋に入る処理
+        this.$router.push({path: '/room/'+this.roomName})
       }
     }
   }
