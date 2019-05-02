@@ -61,8 +61,9 @@
         socket.emit('/ws/v1/room/request_class_change', {userSlug: this.userSlug, roomSlug: this.roomSlug, classes: this.roomClasses})
       },
       gameStart: function (){
+        console.log('ゲーム開始リクエスト')
         const socket = this.$store.getters['socket/socket']
-        socket.emit('/ws/v1/room/request_start', {userSlug: this.userSlug, roomSlug: this.roomSlug})
+        socket.emit('/ws/v1/game/request_start', {userSlug: this.userSlug, roomSlug: this.roomSlug})
       }
     }
   }
