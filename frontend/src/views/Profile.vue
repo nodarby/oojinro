@@ -1,27 +1,29 @@
 <template>
   <div>
-    あなた({{ uuid }})の名前は？？
-    <input type="text" v-model="userName">
+    <h1>プロフィール</h1>
+    <div>ID: {{slug}}</div>
+    <div>名前: <input type="text" v-model="userNameTemp"></div>
     <input type="button" value="OK" @click="done()">
-    現在のルーム: {{ roomName }}
   </div>
 </template>
 <script>
   export default {
+    data () {
+      return {
+        userNameTemp: ''
+      }
+    },
     computed: {
-      userName: {
-        get: function () { return this.$store.getters['user/name'] },
-        set: function (value) { this.$store.commit('user/name', value) }
-      },
-      uuid: function () {
-        return this.$store.getters['user/uuid']
-      },
-      roomName: function () {
-        return this.$store.getters['room/name']
+      slug: function () {
+        return this.$store.getters['user/slug']
       }
     },
     methods: {
       done: function () {
+        console.log('Done Edit Profile')
+        console.log(this.userNameTemp)
+        this.$store.dispatch('user/updateUser', {name: this.userNameTemp})
+        /*
         if (this.$router.history.current.query.redirect_to !== undefined){
           // ルームに所属しているならば，ルームの情報も更新
           if (this.roomName !== ''){
@@ -32,6 +34,7 @@
         }else{
           this.$router.push({path: '/'})
         }
+        */
       }
     }
   }
