@@ -22,7 +22,7 @@
       done: function () {
         console.log('Done Edit Profile')
         console.log(this.userNameTemp)
-        this.$store.dispatch('user/updateUser', {name: this.userNameTemp})
+        this.$store.dispatch('user/update', {name: this.userNameTemp})
         /*
         if (this.$router.history.current.query.redirect_to !== undefined){
           // ルームに所属しているならば，ルームの情報も更新

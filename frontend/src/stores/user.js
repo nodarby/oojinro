@@ -61,7 +61,7 @@ export default {
         })
       }
     },
-    updateUser: (context, payload) => {
+    update: (context, payload) => {
       console.log('Update User')
       const slug = context.state.slug
       const name = payload.name
