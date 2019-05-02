@@ -119,7 +119,7 @@ app.post('/api/v1/room/enter', function(req, res){
               users: playersresult,
               roomSlug:result.roomSlug
             })
-            io.id(playerresult.socketSlugs).emit("/ws/v1/room/entered",json({
+            io.to(playersresult.socketSlugs).emit("/ws/v1/room/entered",json({
               users: playersresult,
               roomSlug:result.roomSlug
             }))
@@ -143,22 +143,16 @@ app.post('/api/v1/room/enter', function(req, res){
 
 
 
-app.post("/api/v1/connected",function(user){
+app.post("/api/v1/socket/connected",function(req,res){
   //接続時にsocketのIDを登録
-  Player.equalTo("slug",user.userSlug).fetch().then(function(result){
+  Player.equalTo("slug",req.body.userSlug).fetch().then(function(result){
     console.log(result)
-    result.set("socketSlugs",user.socketSlug)
+    result.set("socketSlug",req.body.socketSlug)
     result.update().then(function(socketresult){
       //更新できているか確認
       console.log(socketresult)
-      Player.equalTo("roomSlug",result.roomSlug).fetchAll().then(function(playersresult){
-        console.log(playersresult)
-        res.json({
-          users: playersresult,
-          roomSlug:result.roomSlug
-        })
-      }).catch(function(error){
-        res.status(500).json({})
+      res.json({
+        socketresult
       })
     }).catch(function(error){
     })
