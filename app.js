@@ -145,7 +145,7 @@ app.post('/api/v1/room/enter', function(req, res){
           console.log("フォー",player)
           io.to(player.socketSlug).emit("/ws/v1/room/entered",{
             users: players,
-            roomSlug: newRoom.roomSlug,
+            roomSlug: newRoom.slug,
             classes: newRoom.classes
           })
         }
@@ -156,7 +156,7 @@ app.post('/api/v1/room/enter', function(req, res){
       console.log("ほかのひと探したよ2",players)
       res.json({
         users: players,
-        roomSlug: newRoom.roomSlug,
+        roomSlug: newRoom.slug,
         classes: newRoom.classes
       })
 
@@ -224,7 +224,7 @@ app.use(function(req, res, next) {
 io.on('connection',function(socket){
 
   socket.on("/ws/v1/room/request_class_change",function(change){
-    console.log("発火したぞ");
+    console.log("発火したぞ",change);
     (async()=>{
 
       let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
@@ -233,6 +233,7 @@ io.on('connection',function(socket){
 
       let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
       for(let player of players){
+        console.log("この人",players)
         console.log("送ります",player)
         io.to(player.socketSlug).emit("/ws/v1/room/response_class_change",{
           classes: change.classes
