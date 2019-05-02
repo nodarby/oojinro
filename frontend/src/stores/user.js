@@ -1,6 +1,8 @@
+import axios from 'axios'
+
 const state = {
   name: '',
-  uuid: ''
+  slug: ''
 }
 export default {
   namespaced: true,
@@ -9,19 +11,54 @@ export default {
     name: (state) => {
       return state.name
     },
-    uuid: (state) => {
+    slug: (state) => {
       // もしも空ならuuidを生成する部分を作成
-      return state.uuid
+      return state.slug
     }
   },
   mutations: {
     name: (state, payload) => {
       state.name = payload
     },
-    uuid: (state) => {
-      if (state.uuid === ''){
-        console.log('uuid generated')
-        state.uuid = new Date().getTime().toString(16) + Math.floor(Math.random() * 10000).toString(16)
+    slug: (state, payload) => {
+      state.slug = payload
+    }
+  },
+  actions: {
+    loginOrSignup: (context) => {
+      console.log('Login or Signup')
+
+      const slug = context.state.slug
+      if (slug !== ''){ // slugが存在する場合
+        console.log('Doing Log in')
+        return axios.post((process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/') + 'api/v1/login', {userSlug: slug}).then(function(res){
+          console.log('Done Log in')
+          console.log(res.data)
+          context.commit('slug', res.data.userSlug)
+          context.commit('name', res.data.userName)
+        }).catch(function(err){
+          console.log('Failed Log in')
+          // ログインに失敗したら新しいアカウントを取得しようとする
+          console.log('Doing Sign up')
+          return axios.post((process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/') + 'api/v1/signup').then(function(res){
+            console.log('Done Sign Up')
+            console.log(res.data)
+            context.commit('slug', res.data.userSlug)
+            context.commit('name', res.data.userName)
+          }).catch(function(err){
+            console.log('Failed Sign Up')
+          })
+        })
+      }else{ // slugが存在しない場合
+        console.log('Doing Sign up')
+        return axios.post((process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/') + 'api/v1/signup').then(function(res){
+          console.log('Done Sign Up')
+          console.log(res.data)
+          context.commit('slug', res.data.userSlug)
+          context.commit('name', res.data.userName)
+        }).catch(function(err){
+          console.log('Failed Sign Up')
+        })
       }
     }
   }

@@ -5,9 +5,13 @@
 </template>
 <script>
   export default {
-    mounted: function () {
-      this.$store.commit('socket/connect')
-      this.$store.commit('user/uuid')
+    created: function () {
+      const that = this
+      console.log('Loaded!')
+      that.$store.dispatch('user/loginOrSignup').then(function(){
+        console.log('Done Login or Signup')
+        that.$store.commit('socket/connect')
+      })
     }
   }
 </script>
