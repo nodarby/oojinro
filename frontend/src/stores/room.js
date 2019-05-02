@@ -27,11 +27,15 @@ export default {
     create: (context) => {
       console.log('Create Room')
       console.log('Doing Create Room')
-      return axios.post((process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/') + 'api/v1/room/create').then(function(res){
-        console.log('Done Create Room')
-        console.log(res)
-      }).catch(function(err){
-        console.log('Failed Create Room')
+      return new Promise(function(resolve, reject){
+        axios.post((process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/') + 'api/v1/room/create').then(function(res){
+          console.log('Done Create Room')
+          console.log(res.data)
+          resolve(res.data)
+        }).catch(function(err){
+          console.log('Failed Create Room')
+          reject()
+        })
       })
     },
     enter: (context, payload) => {
@@ -40,11 +44,17 @@ export default {
       const roomSlug = payload.roomSlug
       const userSlug = context.rootGetters['user/slug']
       console.log(roomSlug, userSlug)
-      return axios.post((process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/') + 'api/v1/room/enter', {roomSlug: roomSlug, userSlug: userSlug}).then(function(res){
-        console.log('Done Enter Room')
-        console.log(res)
-      }).catch(function(err){
-        console.log('Failed Enter Room')
+      return new Promise(function(resolve, reject){
+        axios.post((process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/') + 'api/v1/room/enter', {roomSlug: roomSlug, userSlug: userSlug}).then(function(res){
+          console.log('Done Enter Room')
+          console.log(res.data)
+          context.commit('slug', res.data.roomSlug)
+          context.commit('users', res.data.users)
+          resolve(res.data)
+        }).catch(function(err){
+          console.log('Failed Enter Room')
+          reject(err)
+        })
       })
     }
   }

@@ -50,6 +50,7 @@ app.post('/api/v1/signup', function(req, res){
   let player = new Player()
   player.set("slug", new Date().getTime().toString(16) + Math.floor(Math.random() * 10000).toString(16))
   player.set("name", null)
+  player.set("roomSlug",null)
   player.save().then(function(result){
     console.log(result)
     // 保存できたらslugを返す
@@ -88,6 +89,55 @@ app.post('/api/v1/profile', function(req, res){
   })
 })
 
+app.post('/api/v1/room/create', function(req, res){
+  //部屋番号を生成
+    let room = new Room()
+    room.set("slug", ('000'+Math.floor(Math.random() * 10000)).slice(-4))
+    room.save().then(function(result){
+      console.log(result)
+      res.json({
+        roomSlug: result.slug
+      })
+    }).catch(function(error){
+      res.status(500).json({})
+    })
+})
+
+app.post('/api/v1/room/enter', function(req, res){
+  //入室の際に参加ユーザを部屋に登録
+  Room.equalTo("slug",req.body.roomSlug).fetchAll().then(function(check){
+    //部屋がすでにあるかを確認
+    if(0!==Object.keys(check).length) {
+      //部屋があれば入室処理
+      Player.equalTo('slug', req.body.userSlug).fetch().then(function(playerresult){
+        console.log(playerresult)
+        playerresult.set("roomSlug",req.body.roomSlug)
+        playerresult.update().then(function(result){
+          Player.equalTo("roomSlug",result.roomSlug).fetchAll().then(function(playersresult){
+            console.log(playersresult)
+            res.json({
+              users: playersresult,
+              roomSlug:result.roomSlug
+            })
+          }).catch(function(error){
+            res.status(500).json({})
+          })
+        }).catch(function(error){
+          res.status(500).json({})
+        })
+      }).catch(function(error){
+        res.status(500).json({})
+      })
+    }else{
+      // 部屋がなかったらエラー
+      res.status(400).json({})
+    }
+  }).catch(function(error){
+    res.status(500).json({})
+  })
+})
+
+
 // ファイルのルーティング
 
 // frontend/distフォルダを返す
@@ -99,6 +149,27 @@ app.use(function(req, res, next) {
 
 
 io.on('connection',function(socket){
+
+  socket.on("/ws/v1/connect",function(user){
+    //接続時にsocketのIDを登録
+    Player.equalTo("Slug",user.userSlug).fetch().then(function(result){
+      console.log(result)
+      result.set("socketSlugs",socket.id)
+      result.update().then(function(socketresult){
+        //更新できているか確認
+        console.log(socketresult)
+      }).catch(function(error){
+        res.status(500).json({})
+      })
+    }).catch(function(error){
+      res.status(500).json({})
+    })
+  })
+
+
+
+
+
   socket.on('requestCreateRoom',function(uuid){
     //部屋番号をランダムに作成してクライアントに伝える。
     let product = new Room();
