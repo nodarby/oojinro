@@ -113,56 +113,41 @@ app.post('/api/v1/room/create', function(req, res){
 })
 
 app.post('/api/v1/room/enter', function(req, res){
-  //入室の際に参加ユーザを部屋に登録
-  Room.equalTo("slug",req.body.roomSlug).fetchAll().then(function(check){
-    //部屋がすでにあるかを確認
-    if(0!==Object.keys(check).length) {
-      //部屋があれば入室処理
-      Player.equalTo('slug', req.body.userSlug).fetch().then(function(playerresult){
-        console.log(playerresult)
-        preroom = playerresult.roomSlug
-        playerresult.set("roomSlug",req.body.roomSlug)
-        playerresult.update().then(function(result){
-          Player.equalTo("roomSlug",result.roomSlug).fetchAll().then(function(playersresult){
-            console.log(playersresult)
-            res.json({
-              users: playersresult,
-              roomSlug:result.roomSlug,
-            })
-            if(req.body.roomSlug !== preroom){
-              Room.equalTo("slug",playerresult.roomSlug).fetch().then(function(classroom){
-                console.log("村人増やすよ")
-                console.log(classroom)
-                //ルームの人数分村人を召喚
-                classroom.classes["村人"] = playersresult.length
-                classroom.update().then(function(result){
-                  console.log(result)
-                }).catch(function(error){
-                  res.status(500).json({})
-                })
-                for (let playerresult of playersresult){
-                  io.to(playerresult.socketSlug).emit("/ws/v1/room/entered",{
-                    users: playersresult,
-                    roomSlug:result.roomSlug,
-                    classes:classroom.classes
-                  })
-                }
-              })
-            }
-          }).catch(function(error){
-            res.status(500).json({})
+
+  (async () => {
+
+    let newRoom = await Room.equalTo("slug",req.body.roomSlug).fetch()
+    if(0 !== Object.keys(newRoom).length){
+      let player = await Player.equalTo("slug",req.body.userSlug).fetch()
+      console.log("player探したよ")
+      console.log(player)
+      const oldRoomSlug = player.roomSlug
+      if(oldRoomSlug !== newRoom.roomSlug){
+        player.set("roomSlug",req.body.roomSlug)
+        player = await player.update()
+        const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
+        console.log("ほかのひと探したよ",players)
+        newRoom.classes["村人"] = players.length
+        newRoom = await newRoom.update()
+        console.log("村人足したよ",newRoom)
+        for(let player of players){
+          console.log("フォー",player)
+          io.to(player.socketSlug).emit("/ws/v1/room/entered",{
+            users: players,
+            roomSlug: newRoom.roomSlug,
+            classes: newRoom.classes
           })
-        }).catch(function(error){
-          res.status(500).json({})
-        })
-      }).catch(function(error){
-        res.status(500).json({})
+        }
+      }
+      const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
+      console.log("ほかのひと探したよ2",players)
+      res.json({
+        users: players,
+        roomSlug: newRoom.roomSlug,
+        classes: newRoom.classes
       })
-    }else{
-      // 部屋がなかったらエラー
-      res.status(400).json({})
     }
-  }).catch(function(error){
+  })().catch(function (){
     res.status(500).json({})
   })
 })
