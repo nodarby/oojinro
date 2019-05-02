@@ -127,7 +127,9 @@ app.post('/api/v1/room/enter', function(req, res){
       const oldRoomSlug = player.roomSlug
 
       //リロードか新たな参加かを判断
-      if(oldRoomSlug !== newRoom.roomSlug){
+      if(oldRoomSlug !== newRoom.slug){
+        console.log("前",oldRoomSlug)
+        console.log("後",newRoom.slug)
         player.set("roomSlug",req.body.roomSlug)
         player = await player.update()
 
@@ -225,16 +227,18 @@ io.on('connection',function(socket){
     console.log("発火したぞ");
     (async()=>{
 
-      const players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+      let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
+      classroom.set("classes",change.classes)
+      let result = await classroom.update()
+
+      let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
       for(let player of players){
         console.log("送ります",player)
         io.to(player.socketSlug).emit("/ws/v1/room/response_class_change",{
           classes: change.classes
         })
       }
-    })().catch(function (){
-      res.status(500).json({})
-    })
+    })()
   })
 
 })
