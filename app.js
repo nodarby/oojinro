@@ -105,7 +105,7 @@ app.post('/api/v1/room/create', function(req, res){
 
 app.post('/api/v1/room/enter', function(req, res){
   //入室の際に参加ユーザを部屋に登録
-  Room.equalTo("roomSlug",req.body.roomSlug).fetchAll().then(function(check){
+  Room.equalTo("slug",req.body.roomSlug).fetchAll().then(function(check){
     //部屋がすでにあるかを確認
     if(0!==Object.keys(check).length) {
       //部屋があれば入室処理
