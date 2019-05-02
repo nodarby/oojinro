@@ -187,7 +187,28 @@ app.post("/api/v1/socket/connected",function(req,res){
     })
   })
 
+/*
+app.post("/api/v1/room/class",function(req,res){
+  (async()=>{
 
+    let room = await Room.equalTo("slug",req.body.roomSlug)
+    console.log("見つけたよ",room)
+    room.set("classes",req.body.classes)
+    let class = await room.update()
+    console.log("更新したよ",class)
+
+    const players = await Player.equalTo("roomSlug",class.slug).fetchAll()
+    for(let player of players){
+      console.log("送ります",player)
+      io.to(player.socketSlug).emit("/ws/v1/room/class",{
+        classes: .classes
+      })
+    }
+  })().catch(function (){
+    res.status(500).json({})
+  })
+})
+*/
 // ファイルのルーティング
 
 // frontend/distフォルダを返す
@@ -199,6 +220,23 @@ app.use(function(req, res, next) {
 
 
 io.on('connection',function(socket){
+
+  socket.on("/ws/v1/room/request_class_change",function(change){
+    console.log("発火したぞ");
+    (async()=>{
+
+      const players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+      for(let player of players){
+        console.log("送ります",player)
+        io.to(player.socketSlug).emit("/ws/v1/room/response_class_change",{
+          classes: change.classes
+        })
+      }
+    })().catch(function (){
+      res.status(500).json({})
+    })
+  })
+
 })
 
 /*
