@@ -26,18 +26,19 @@
     created: function() {
       // 入室処理
       const that = this
-      this.$store.dispatch('room/enter', {roomSlug: this.roomSlug}).then(function(res){
-        console.log('入室完了', res)
-        if(!that.userName){
-          that.$router.push({path: '/profile', query: {redirect_to: '/room/'+that.roomSlug}})
-          return
-        }
-        // 画面を見せる
-        that.isLoading = false
-      }).catch(function(err){
-        that.$router.push({path: '/'})
-        alert('部屋が見つかりませんでした')
-      })
+        console.log('入室しようとする')
+        that.$store.dispatch('room/enter', {roomSlug: that.roomSlug}).then(function(res){
+          console.log('入室完了', res)
+          if(!that.userName){
+            that.$router.push({path: '/profile', query: {redirect_to: '/room/'+that.roomSlug}})
+            return
+          }
+          // 画面を見せる
+          that.isLoading = false
+        }).catch(function(err){
+          that.$router.push({path: '/'})
+          alert('部屋が見つかりませんでした')
+        })
     }
   }
 </script>
