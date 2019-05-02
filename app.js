@@ -119,6 +119,10 @@ app.post('/api/v1/room/enter', function(req, res){
               users: playersresult,
               roomSlug:result.roomSlug
             })
+            io.id(playerresult.socketSlugs).emit("/ws/v1/room/entered",json({
+              users: playersresult,
+              roomSlug:result.roomSlug
+            }))
           }).catch(function(error){
             res.status(500).json({})
           })
@@ -138,6 +142,29 @@ app.post('/api/v1/room/enter', function(req, res){
 })
 
 
+
+app.post("/api/v1/connected",function(user){
+  //接続時にsocketのIDを登録
+  Player.equalTo("slug",user.userSlug).fetch().then(function(result){
+    console.log(result)
+    result.set("socketSlugs",user.socketSlug)
+    result.update().then(function(socketresult){
+      //更新できているか確認
+      console.log(socketresult)
+      Player.equalTo("roomSlug",result.roomSlug).fetchAll().then(function(playersresult){
+        console.log(playersresult)
+        res.json({
+          users: playersresult,
+          roomSlug:result.roomSlug
+        })
+      }).catch(function(error){
+        res.status(500).json({})
+      })
+    }).catch(function(error){
+    })
+  }).catch(function(error){
+  })
+})
 // ファイルのルーティング
 
 // frontend/distフォルダを返す
@@ -149,27 +176,6 @@ app.use(function(req, res, next) {
 
 
 io.on('connection',function(socket){
-
-  socket.on("/ws/v1/connect",function(user){
-    //接続時にsocketのIDを登録
-    Player.equalTo("Slug",user.userSlug).fetch().then(function(result){
-      console.log(result)
-      result.set("socketSlugs",socket.id)
-      result.update().then(function(socketresult){
-        //更新できているか確認
-        console.log(socketresult)
-      }).catch(function(error){
-        res.status(500).json({})
-      })
-    }).catch(function(error){
-      res.status(500).json({})
-    })
-  })
-
-
-
-
-
   socket.on('requestCreateRoom',function(uuid){
     //部屋番号をランダムに作成してクライアントに伝える。
     let product = new Room();
