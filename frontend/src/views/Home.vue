@@ -23,6 +23,7 @@
         this.$store.dispatch('room/create')
       },
       findRoom: function () {
+        this.$store.dispatch('room/enter', {roomSlug: this.roomSlug})
       },
     }
   }
