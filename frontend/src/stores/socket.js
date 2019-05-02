@@ -23,8 +23,10 @@ export default {
       context.commit('socket', socket)
 
       socket.on('/ws/v1/room/entered', function(res){
+        console.log('entered watch: ', res)
         context.commit('room/slug', res.roomSlug, {root: true})
         context.commit('room/users', res.users, {root: true})
+        context.commit('room/classes', res.classes, {root: true})
       })
 
       return new Promise(function(resolve, reject){
