@@ -64,6 +64,30 @@ app.post('/api/v1/signup', function(req, res){
   })
 })
 
+// 名前を変える
+app.post('/api/v1/profile', function(req, res){
+  console.log(req.body)
+  Player.equalTo('slug', req.body.userSlug).fetch().then(function(result){
+    if(0!==Object.keys(result).length) {
+      // 名前を変えることができたら情報を返す
+      result.set("name",req.body.userName)
+      result.update()
+      console.log(result)
+      res.json({
+        userSlug: result.slug,
+        userName: result.name
+      })
+    }else{
+      // 変更できなかったらエラー
+      res.status(400).json({})
+    }
+  }).catch(function(error){
+    console.log(error)
+    // 取ってこれなかったらエラーを返す
+    res.status(500).json({})
+  })
+})
+
 // ファイルのルーティング
 
 // frontend/distフォルダを返す
