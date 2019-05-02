@@ -116,7 +116,8 @@ app.post('/api/v1/room/enter', function(req, res){
           Player.equalTo("roomSlug",result.roomSlug).fetchAll().then(function(playersresult){
             console.log(playersresult)
             res.json({
-              users: playersresult
+              users: playersresult,
+              roomSlug:result.roomSlug
             })
           }).catch(function(error){
             res.status(500).json({})
