@@ -12,7 +12,6 @@ export default {
       return state.name
     },
     slug: (state) => {
-      // もしも空ならuuidを生成する部分を作成
       return state.slug
     }
   },
@@ -65,8 +64,9 @@ export default {
       console.log('Update User')
       const slug = context.state.slug
       const name = payload.name
+      const roomSlug = context.rootGetters['room/slug']
       return new Promise(function(resolve, reject){
-        axios.post((process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/') + 'api/v1/profile', {userSlug: slug, userName: name}).then(function(res){
+        axios.post((process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/') + 'api/v1/profile', {userSlug: slug, userName: name, roomSlug: roomSlug}).then(function(res){
           console.log('Done Update User')
           console.log(res.data)
           context.commit('slug', res.data.userSlug)
