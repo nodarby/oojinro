@@ -85,7 +85,8 @@ app.post('/api/v1/profile', function(req, res){
   }).catch(function(error){
     console.log(error)
     // 取ってこれなかったらエラーを返す
-    res.status(500).json({})
+    res.status(500).json({
+    })
   })
 })
 
@@ -93,6 +94,14 @@ app.post('/api/v1/room/create', function(req, res){
   //部屋番号を生成
     let room = new Room()
     room.set("slug", ('000'+Math.floor(Math.random() * 10000)).slice(-4))
+    room.set("classes",{
+          "村人": 0,
+          "占い師": 0,
+          "怪盗":0,
+          "人狼":0,
+          "狂人":0,
+          "吊人":0,
+        })
     room.save().then(function(result){
       console.log(result)
       res.json({
@@ -111,6 +120,7 @@ app.post('/api/v1/room/enter', function(req, res){
       //部屋があれば入室処理
       Player.equalTo('slug', req.body.userSlug).fetch().then(function(playerresult){
         console.log(playerresult)
+        preroom = playerresult.roomSlug
         playerresult.set("roomSlug",req.body.roomSlug)
         playerresult.update().then(function(result){
           Player.equalTo("roomSlug",result.roomSlug).fetchAll().then(function(playersresult){
@@ -119,11 +129,26 @@ app.post('/api/v1/room/enter', function(req, res){
               users: playersresult,
               roomSlug:result.roomSlug
             })
-            for (let playerresult of playersresult){
-              io.to(playerresult.socketSlug).emit("/ws/v1/room/entered",{
-                users: playersresult,
-                roomSlug:result.roomSlug
+            if(req.body.roomSlug !== preroom){
+              Room.equalTo("slug",playerresult.roomSlug).fetch().then(function(classroom){
+                console.log("村人増やすよ")
+                console.log(classroom)
+                //ルームの人数分村人を召喚
+                classroom.classes["村人"] = playersresult.length
+                classroom.update().then(function(result){
+                  console.log(result)
+                }).catch(function(error){
+                  res.status(500).json({})
+                })
               })
+              for (let playerresult of playersresult){
+                io.to(playerresult.socketSlug).emit("/ws/v1/room/entered",{
+                  users: playersresult,
+                  roomSlug:result.roomSlug
+                })
+              }
+            }else{
+
             }
           }).catch(function(error){
             res.status(500).json({})
@@ -272,9 +297,9 @@ while (a) {
 arr.forEach( function( value ) {console.log( value )} )
 return ""
 }
+
+
 */
-
-
 http.listen(PORT, function(){
     console.log('server listening. Port:' + PORT);
 });
