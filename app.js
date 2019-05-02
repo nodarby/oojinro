@@ -119,6 +119,12 @@ app.post('/api/v1/room/enter', function(req, res){
               users: playersresult,
               roomSlug:result.roomSlug
             })
+            for (let playerresult of playersresult){
+              io.to(playerresult.socketSlug).emit("/ws/v1/room/entered",{
+                users: playersresult,
+                roomSlug:result.roomSlug
+              })
+            }
           }).catch(function(error){
             res.status(500).json({})
           })
@@ -138,6 +144,23 @@ app.post('/api/v1/room/enter', function(req, res){
 })
 
 
+
+app.post("/api/v1/socket/connected",function(req,res){
+  //接続時にsocketのIDを登録
+  Player.equalTo("slug",req.body.userSlug).fetch().then(function(result){
+    console.log(result)
+    result.set("socketSlug",req.body.socketSlug)
+    result.update().then(function(socketresult){
+      //更新できているか確認
+      console.log(socketresult)
+      res.json(
+        socketresult
+      )
+    }).catch(function(error){
+    })
+  }).catch(function(error){
+  })
+})
 // ファイルのルーティング
 
 // frontend/distフォルダを返す
@@ -149,27 +172,6 @@ app.use(function(req, res, next) {
 
 
 io.on('connection',function(socket){
-
-  socket.on("/ws/v1/connect",function(user){
-    //接続時にsocketのIDを登録
-    Player.equalTo("Slug",user.userSlug).fetch().then(function(result){
-      console.log(result)
-      result.set("socketSlugs",socket.id)
-      result.update().then(function(socketresult){
-        //更新できているか確認
-        console.log(socketresult)
-      }).catch(function(error){
-        res.status(500).json({})
-      })
-    }).catch(function(error){
-      res.status(500).json({})
-    })
-  })
-
-
-
-
-
   socket.on('requestCreateRoom',function(uuid){
     //部屋番号をランダムに作成してクライアントに伝える。
     let product = new Room();
@@ -252,6 +254,25 @@ io.on('connection',function(socket){
 
 
   });
+
+
+/*
+const arr = [1,2,3,4,5,6,7,8,9]
+const a = arr.length
+
+//シャッフルアルゴリズム
+while (a) {
+    const j = Math.floor( Math.random() * a )
+    const t = arr[--a]
+    arr[a] = arr[j]
+    arr[j] = t
+}
+
+//シャッフルされた配列の要素を順番に表示する
+arr.forEach( function( value ) {console.log( value )} )
+return ""
+}
+*/
 
 
 http.listen(PORT, function(){
