@@ -6,7 +6,7 @@
     </div>
 
     <div>
-      <input type="text" v-model="roomSlug">
+      <input type="text" v-model="roomSlugTemp">
       <input type="button" value="部屋に入る" @click="findRoom()">
     </div>
   </div>
@@ -15,15 +15,20 @@
   export default {
     data () {
       return {
-        roomSlug: ''
+        roomSlugTemp: ''
       }
     },
     methods: {
       createRoom: function () {
-        this.$store.dispatch('room/create')
+        const that = this
+        this.$store.dispatch('room/create').then(function(res){
+          that.$router.push({path: '/room/'+res.roomSlug})
+        }).catch(function(err){
+          alert('部屋が作れませんでした')
+        })
       },
       findRoom: function () {
-        this.$store.dispatch('room/enter', {roomSlug: this.roomSlug})
+        this.$router.push({path: '/room/'+this.roomSlugTemp})
       },
     }
   }

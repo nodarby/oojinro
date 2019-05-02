@@ -26,7 +26,7 @@ export default new Router({
       component: () => import('./views/Profile.vue')
     },
     {
-      path: '/room/:name',
+      path: '/room/:roomSlug',
       component: () => import('./views/Room.vue')
     },
     {
