@@ -50,6 +50,7 @@ app.post('/api/v1/signup', function(req, res){
   let player = new Player()
   player.set("slug", new Date().getTime().toString(16) + Math.floor(Math.random() * 10000).toString(16))
   player.set("name", null)
+  player.set("roomSlug",null)
   player.save().then(function(result){
     console.log(result)
     // 保存できたらslugを返す
@@ -102,7 +103,27 @@ app.post('/api/v1/room/create', function(req, res){
     })
 })
 
-
+app.post('/api/v1/room/enter', function(req, res){
+  //入室の際に参加ユーザを部屋に登録
+  Player.equalTo('slug', req.body.userSlug).fetch().then(function(playerresult){
+    console.log(playerresult)
+    playerresult.set("roomSlug",req.body.roomSlug)
+    playerresult.update().then(function(result){
+      Player.equalTo("roomSlug",result.roomSlug).fetchAll().then(function(playersresult){
+        console.log(playersresult)
+        res.json({
+          users: playersresult
+        })
+      }).catch(function(error){
+      res.status(500).json({})
+      })
+    }).catch(function(error){
+    res.status(500).json({})
+    })
+  }).catch(function(error){
+    res.status(500).json({})
+  })
+})
 
 
 // ファイルのルーティング
