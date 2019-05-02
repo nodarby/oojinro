@@ -88,6 +88,23 @@ app.post('/api/v1/profile', function(req, res){
   })
 })
 
+app.post('/api/v1/room/create', function(req, res){
+  //部屋番号を生成
+    let room = new Room()
+    room.set("slug", ('000'+Math.floor(Math.random() * 10000)).slice(-4))
+    room.save().then(function(result){
+      console.log(result)
+      res.json({
+        roomSlug: result.slug
+      })
+    }).catch(function(error){
+      res.status(500).json({})
+    })
+})
+
+
+
+
 // ファイルのルーティング
 
 // frontend/distフォルダを返す
