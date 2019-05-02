@@ -127,7 +127,7 @@ app.post('/api/v1/room/enter', function(req, res){
             console.log(playersresult)
             res.json({
               users: playersresult,
-              roomSlug:result.roomSlug
+              roomSlug:result.roomSlug,
             })
             if(req.body.roomSlug !== preroom){
               Room.equalTo("slug",playerresult.roomSlug).fetch().then(function(classroom){
@@ -140,15 +140,14 @@ app.post('/api/v1/room/enter', function(req, res){
                 }).catch(function(error){
                   res.status(500).json({})
                 })
+                for (let playerresult of playersresult){
+                  io.to(playerresult.socketSlug).emit("/ws/v1/room/entered",{
+                    users: playersresult,
+                    roomSlug:result.roomSlug,
+                    classes:classroom.classes
+                  })
+                }
               })
-              for (let playerresult of playersresult){
-                io.to(playerresult.socketSlug).emit("/ws/v1/room/entered",{
-                  users: playersresult,
-                  roomSlug:result.roomSlug
-                })
-              }
-            }else{
-
             }
           }).catch(function(error){
             res.status(500).json({})
