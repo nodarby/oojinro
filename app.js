@@ -266,12 +266,13 @@ while (a) {
     const t = arr[--a]
     arr[a] = arr[j]
     arr[j] = t
-}*/
+}
 
 //シャッフルされた配列の要素を順番に表示する
 arr.forEach( function( value ) {console.log( value )} )
 return ""
 }
+*/
 
 
 http.listen(PORT, function(){
