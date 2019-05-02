@@ -119,10 +119,12 @@ app.post('/api/v1/room/enter', function(req, res){
               users: playersresult,
               roomSlug:result.roomSlug
             })
-            io.to(playersresult.socketSlugs).emit("/ws/v1/room/entered",json({
-              users: playersresult,
-              roomSlug:result.roomSlug
-            }))
+            for (let playerresult of playersresult){
+              io.to(playerresult.socketSlug).emit("/ws/v1/room/entered",json({
+                users: playersresult,
+                roomSlug:result.roomSlug
+              }))
+            }
           }).catch(function(error){
             res.status(500).json({})
           })
@@ -151,9 +153,9 @@ app.post("/api/v1/socket/connected",function(req,res){
     result.update().then(function(socketresult){
       //更新できているか確認
       console.log(socketresult)
-      res.json({
+      res.json(
         socketresult
-      })
+      )
     }).catch(function(error){
     })
   }).catch(function(error){
