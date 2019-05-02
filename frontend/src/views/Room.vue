@@ -1,25 +1,37 @@
 <template>
   <div v-if="!isLoading">
-    <div>Room {{ roomSlug }}</div>
-    <div>User {{ userName }}({{ userSlug }})</div>
-    <ul v-for="roomUser in roomUsers">
-      <li>{{roomUser.name}}({{roomUser.slug}})</li>
+    <h1>ルーム{{ roomSlug }}</h1>
+    <h3>{{ userName }}({{ userSlug }})</h3>
+    <h2>メンバー</h2>
+    <ul>
+      <li v-for="roomUser in roomUsers">{{roomUser.name}}({{roomUser.slug}})</li>
     </ul>
+    <h2>役職</h2>
+    <ul>
+      <li v-for="(value, klass) in roomClasses">{{klass}}×{{ value || 0 }}</li>
+    </ul>
+    <GameWaiting></GameWaiting>
   </div>
   <div v-else>
-    Loading...
+    入室中...
   </div>
 </template>
 <script>
+  import GameWaiting from '../components/GameWaiting'
+
   export default {
     data () {
       return {
         isLoading: true
       }
     },
+    components: {
+      GameWaiting
+    },
     computed: {
       roomSlug: function () {return this.$router.history.current.params.roomSlug},
       roomUsers: function () {return this.$store.getters['room/users']},
+      roomClasses: function () {return this.$store.getters['room/classes']},
       userName: function () {return this.$store.getters['user/name']},
       userSlug: function () {return this.$store.getters['user/slug']}
     },

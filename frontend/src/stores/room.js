@@ -2,7 +2,8 @@ import axios from 'axios'
 
 const state = {
   slug: null,
-  users: []
+  users: [],
+  classes: []
 }
 export default {
   namespaced: true,
@@ -13,6 +14,9 @@ export default {
     },
     users: (state) => {
       return state.users
+    },
+    classes: (state) => {
+      return state.classes
     }
   },
   mutations: {
@@ -21,6 +25,9 @@ export default {
     },
     users: (state, payload) => {
       state.users = payload
+    },
+    classes: (state, payload) => {
+      state.classes = payload
     }
   },
   actions: {
@@ -50,6 +57,7 @@ export default {
           console.log(res.data)
           context.commit('slug', res.data.roomSlug)
           context.commit('users', res.data.users)
+          context.commit('classes', res.data.classes)
           resolve(res.data)
         }).catch(function(err){
           console.log('Failed Enter Room')
