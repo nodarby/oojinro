@@ -65,13 +65,17 @@ export default {
       console.log('Update User')
       const slug = context.state.slug
       const name = payload.name
-      return axios.post((process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/') + 'api/v1/profile', {userSlug: slug, userName: name}).then(function(res){
-        console.log('Done Update User')
-        console.log(res.data)
-        context.commit('slug', res.data.userSlug)
-        context.commit('name', res.data.userName)
-      }).catch(function(err){
-        console.log('Failed Update User')
+      return new Promise(function(resolve, reject){
+        axios.post((process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/') + 'api/v1/profile', {userSlug: slug, userName: name}).then(function(res){
+          console.log('Done Update User')
+          console.log(res.data)
+          context.commit('slug', res.data.userSlug)
+          context.commit('name', res.data.userName)
+          resolve()
+        }).catch(function(err){
+          console.log('Failed Update User')
+          reject()
+        })
       })
     }
   }
