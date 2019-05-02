@@ -10,7 +10,7 @@ export default {
   state,
   getters: {
     slug: (state) => {
-      return state.name
+      return state.slug
     },
     users: (state) => {
       return state.users
