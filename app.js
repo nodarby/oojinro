@@ -120,10 +120,10 @@ app.post('/api/v1/room/enter', function(req, res){
               roomSlug:result.roomSlug
             })
             for (let playerresult of playersresult){
-              io.to(playerresult.socketSlug).emit("/ws/v1/room/entered",json({
+              io.to(playerresult.socketSlug).emit("/ws/v1/room/entered",{
                 users: playersresult,
                 roomSlug:result.roomSlug
-              }))
+              })
             }
           }).catch(function(error){
             res.status(500).json({})
@@ -254,6 +254,24 @@ io.on('connection',function(socket){
 
 
   });
+
+
+/*
+const arr = [1,2,3,4,5,6,7,8,9]
+const a = arr.length
+
+//シャッフルアルゴリズム
+while (a) {
+    const j = Math.floor( Math.random() * a )
+    const t = arr[--a]
+    arr[a] = arr[j]
+    arr[j] = t
+}*/
+
+//シャッフルされた配列の要素を順番に表示する
+arr.forEach( function( value ) {console.log( value )} )
+return ""
+}
 
 
 http.listen(PORT, function(){
