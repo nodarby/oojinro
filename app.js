@@ -112,24 +112,33 @@ app.post('/api/v1/room/create', function(req, res){
     })
 })
 
+//入室処理
 app.post('/api/v1/room/enter', function(req, res){
 
   (async () => {
-
+    //部屋がすでに存在するか判定
     let newRoom = await Room.equalTo("slug",req.body.roomSlug).fetch()
+
+    //もし部屋があれば行う
     if(0 !== Object.keys(newRoom).length){
       let player = await Player.equalTo("slug",req.body.userSlug).fetch()
       console.log("player探したよ")
       console.log(player)
       const oldRoomSlug = player.roomSlug
+
+      //リロードか新たな参加かを判断
       if(oldRoomSlug !== newRoom.roomSlug){
         player.set("roomSlug",req.body.roomSlug)
         player = await player.update()
+
+        //同じ部屋の人数分村人を増やす
         const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
         console.log("ほかのひと探したよ",players)
         newRoom.classes["村人"] = players.length
         newRoom = await newRoom.update()
         console.log("村人足したよ",newRoom)
+
+        //全員に変化を伝える
         for(let player of players){
           console.log("フォー",player)
           io.to(player.socketSlug).emit("/ws/v1/room/entered",{
@@ -139,6 +148,8 @@ app.post('/api/v1/room/enter', function(req, res){
           })
         }
       }
+
+      //リロードの場合、元の部屋の情報を与える
       const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
       console.log("ほかのひと探したよ2",players)
       res.json({
@@ -146,6 +157,10 @@ app.post('/api/v1/room/enter', function(req, res){
         roomSlug: newRoom.roomSlug,
         classes: newRoom.classes
       })
+
+      //部屋が存在しない場合エラーを返す
+    }else{
+      res.status(500).json({})
     }
   })().catch(function (){
     res.status(500).json({})
@@ -153,23 +168,26 @@ app.post('/api/v1/room/enter', function(req, res){
 })
 
 
-
-app.post("/api/v1/socket/connected",function(req,res){
   //接続時にsocketのIDを登録
-  Player.equalTo("slug",req.body.userSlug).fetch().then(function(result){
-    console.log(result)
-    result.set("socketSlug",req.body.socketSlug)
-    result.update().then(function(socketresult){
+app.post("/api/v1/socket/connected",function(req,res){
+    (async()=>{
+
+      let result = await Player.equalTo("slug",req.body.userSlug).fetch()
+      console.log("人を特定したよ",result)
+      result.set("socketSlug",req.body.socketSlug)
+      let socketresult = await result.update()
+
       //更新できているか確認
-      console.log(socketresult)
+      console.log("ソケットIDこれよ",socketresult)
       res.json(
         socketresult
       )
-    }).catch(function(error){
+    })().catch(function (){
+      res.status(500).json({})
     })
-  }).catch(function(error){
   })
-})
+
+
 // ファイルのルーティング
 
 // frontend/distフォルダを返す
@@ -181,89 +199,7 @@ app.use(function(req, res, next) {
 
 
 io.on('connection',function(socket){
-  socket.on('requestCreateRoom',function(uuid){
-    //部屋番号をランダムに作成してクライアントに伝える。
-    let product = new Room();
-    var  l = 8;
-    var c = "0123456789"
-    var num = "";
-    var cl = c.length;
-    for(var i=0; i<l;i++){
-      num += c[Math.floor(Math.random()*cl)];
-    }
-    //ニフクラのデータベースを検索し重複がないか確認。
-    //最初にすべてのデータを持ってくると非同期処理にならない。それを参照。
-    product.set("room_name",num);
-    product.set("members",[]);
-    product.save().then(function(res){
-      socket.emit("responseCreateRoom", num);
-    }).catch(function(err){
-      socket.emit("responseCreateRoom", null);
-    });
-  });
-
-    socket.on('requestEnterRoom',function(person){
-      //受け取った部屋番号が存在するか判定
-      Room.equalTo("room_name",person.roomName)
-          .fetch()
-          .then(function(results){
-            if(0==Object.keys(results).length){
-              socket.emit("responseEnterRoom",null);
-            }else{
-            results.members.push({uuid:person.uuid})
-            results.update();
-            console.log(results); // 検索結果の件数を表示
-            socket.join(person.roomName);
-            socket.emit("responseEnterRoom",{roomName:person.roomName,members:results.members});
-            }
-          }).catch(function(err){
-            console.log(err);
-            socket.emit("responseEnterRoom",null);
-          });
-
-
-      //ニフクラのデータベースを検索し存在するか確認。
-      //最初にすべてのデータを持ってくると非同期処理にならない。それを参照。
-/*      product.set("room_name",num);
-      product.set("members",{uuid:uuid});
-      product.save();*/
-
-      });
-    socket.on("requestUpdateUser",function(person){
-      //ユーザの名前登録
-        Room.equalTo("room_name",person.roomName)
-            .fetch()
-            .then(function(result){
-              const index = result.members.findIndex(function(p){ return p.uuid === person.uuid })
-              result.members[index].userName = person.userName
-              console.log(result)
-              result.update();
-            })
-      })
-
-    socket.on("requestExitRoom",function(person){
-      Room.equalTo("room_name",person.roomName)
-          .fetch()
-          .then(function(result){
-            result.delete();
-          })
-          .catch(function(err){
-
-          });
-    })
-    //部屋の削除
-
-
-    //役職振り分け
-    socket.on("スタートの合図的な",function(){
-
-    })
-
-    //役職ごとの処理
-
-
-  });
-
+})
 
 /*
 const arr = [1,2,3,4,5,6,7,8,9]
