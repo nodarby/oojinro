@@ -222,6 +222,7 @@ app.use(function(req, res, next) {
 io.on('connection',function(socket){
 
   socket.on("/ws/v1/room/request_class_change",function(change){
+    console.log("発火したぞ");
     (async()=>{
 
       const players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
