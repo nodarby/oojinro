@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/oojinro/oojinro#readme",
   "dependencies": {
+    "dotenv": "^8.0.0",
     "express": "^4.16.4",
     "ncmb": "^3.0.0",
     "pg": "^7.10.0",
