@@ -5,7 +5,7 @@
     <ul>
       <li v-for="(value, klass) in roomClasses">{{klass}}×{{ value || 0 }}<button @click="plus(klass)">+</button><button @click="minus(klass)">-</button></li>
     </ul>
-    <button>ゲーム開始</button>
+    <button @click="gameStart()">ゲーム開始</button>
   </div>
 </template>
 <script>
@@ -40,10 +40,14 @@
         // console.log('役職の割り振りが変更されたよ〜', res)
         that.roomClasses = res.classes
       })
+      socket.on('/ws/v1/game/response_start', function(res){
+        alert('ゲーム開始しました！^^')
+      })
     },
     destroyed: function () {
       const socket = this.$store.getters['socket/socket']
       socket.off('/ws/v1/room/class')
+      socket.off('/ws/v1/game/response_start')
     },
     methods: {
       plus: function (klass){
@@ -55,6 +59,11 @@
         if (this.roomClasses[klass] > 0) this.roomClasses[klass] --
         const socket = this.$store.getters['socket/socket']
         socket.emit('/ws/v1/room/request_class_change', {userSlug: this.userSlug, roomSlug: this.roomSlug, classes: this.roomClasses})
+      },
+      gameStart: function (){
+        console.log('ゲーム開始リクエスト')
+        const socket = this.$store.getters['socket/socket']
+        socket.emit('/ws/v1/game/request_start', {userSlug: this.userSlug, roomSlug: this.roomSlug})
       }
     }
   }
