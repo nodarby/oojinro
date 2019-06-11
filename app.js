@@ -233,7 +233,7 @@ io.on('connection',function(socket){
       classroom.set("classes",change.classes)
       let result = await classroom.update()
 
-      let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+      let players = await Player.equalTo("roomSlug",change.roomSlug).notEqualTo("slug",change.userSlug).fetchAll()
       for(let player of players){
         console.log("この人",players)
         console.log("送ります",player)
