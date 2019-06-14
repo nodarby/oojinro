@@ -17,6 +17,9 @@ export default {
     },
     classes: (state) => {
       return state.classes
+    },
+    phase: (state) => {
+      return state.phase
     }
   },
   mutations: {
@@ -28,6 +31,9 @@ export default {
     },
     classes: (state, payload) => {
       state.classes = payload
+    },
+    phase: (state, payload) => {
+      state.phase = payload
     }
   },
   actions: {
