@@ -307,37 +307,53 @@ io.on('connection',function(socket){
         let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
         let uranai = await Player.equalTo("slug", change.userSlug).fetch()
         console.log("送ります")
-
-        io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai",{
-          fieldClass: classroom.field
-        })
         uranai.set("phase","NightResult")
         let socketresult = await uranai.update()
+
+        io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai",{
+          fieldClass: classroom.field,
+          phase:uranai.phase
+        })
+
       } else {
         let player = await Player.equalTo("slug", change.targetSlug).fetch()
         let uranai = await Player.equalTo("slug", change.userSlug).fetch()
         console.log("送ります")
-        io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai", {
-          targetClass: player.class
-        })
         uranai.set("phase","NightResult")
         let socketresult = await uranai.update()
+
+        io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai", {
+          targetClass: player.class,
+          phase: uranai.phase
+        })
+
       }
     })()
   })
 
 
   //怪盗の夜の行動
-  socket.on("/ws/v1/game/request_uranai",function(change){
+  socket.on("/ws/v1/game/request_kaito",function(change){
     console.log("怪盗",change);
     (async()=>{
 
       let player = await Player.equalTo("slug", change.targetSlug).fetch()
-      let uranai = await Player.equalTo("slug", change.userSlug).fetch()
+      let kaito = await Player.equalTo("slug", change.userSlug).fetch()
+
+      kaito.set("phase","NightResult")
+      let socketresult = await kaito.update()
       console.log("送ります")
-      io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai", {
-        targetClass: player.class
+      io.to(kaito.socketSlug).emit("/ws/v1/game/response_kaito", {
+        targetClass: kaito.class,
+        phase: kaito.phase
       })
+
+      let tmp = player.class
+      player.set("class",kaito.class)
+      kaito.set("class",tmp)
+      let socketresult = await player.update()
+      let socketresult = await kaito.update()
+
     })()
   })
 
