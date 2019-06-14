@@ -202,6 +202,16 @@ app.post('/api/v1/room/enter', function(req, res){
               class: man.class,
               vote: {slug: vot.slug, name: vot.name}
             })
+          }else if(man.phase == "GameResult") {
+            let classroom = await Room.equalTo("slug",req.body.roomSlug).fetch()
+            res.json({
+              users: players,
+              roomSlug: newRoom.slug,
+              classes: newRoom.classes,
+              phase: man.phase,
+              class: man.class,
+              result:classroom.result
+            })
           }else{
             let tag = await Player.equalTo("slug",man.target).fetch()
             res.json({
@@ -494,48 +504,60 @@ io.on('connection',function(socket){
         let winside = ""
 
         var excuted = []
-        for (let excute of maxSlugs){
-          let person = await Player.equalTo("slug", excute).fetch()
-          excuted.push(person)
+        console.log(max)
+        if(max != 1){
+          for (let excute of maxSlugs){
+            let person = await Player.equalTo("slug", excute).fetch()
+            excuted.push(person)
+          }
         }
+
 
         if(max != 1){
           for (let exe of maxSlugs) {
             if (winside != "吊人") {
               let player = await Player.equalTo("slug", exe).fetch()
-              if (player.class == "吊人") {
-               winside = "吊人"
-              } else if (player.class == "人狼") {
+              if (player.new_class == "吊人") {
+                winside = "吊人"
+                console.log("吊人")
+              } else if (player.new_class == "人狼") {
                 winside = "市民"
+                console.log("市民")
               } else {
                if (winside != "市民") {
                  winside = "人狼"
+                 console.log("人狼")
                }
-             }
+              }
             }
           }
         }else{
           let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
           for(let player of players){
-            if(player.class = "人狼"){
+            if(player.new_class == "人狼"){
               winside = "人狼"
+              console.log("平和村人狼")
             }
           }
           if(winside != "人狼"){
             winside = "市民"
+            console.log("平和村市民")
           }
         }
 
 
         let winner = ""
         if(winside == "人狼"){
-          winner = await Player.equalTo("roomSlug",change.roomSlug).or(Player.equalTo("class","人狼"),Player.equalTo("class","狂人")).fetchAll()
-        }else if(winside = "吊人"){
-          winner = await Player.equalTo("roomSlug",change.roomSlug).equalTo("class","吊人").fetchAll()
+          winner = await Player.equalTo("roomSlug",change.roomSlug).or(Player.equalTo("new_class","人狼"),Player.equalTo("new_class","狂人")).fetchAll()
+        }else if(winside == "吊人"){
+          winner = await Player.equalTo("roomSlug",change.roomSlug).equalTo("new_class","吊人").fetchAll()
         }else{
-          winner = await Player.equalTo("roomSlug",change.roomSlug).or(Player.equalTo("class","村人"),Player.equalTo("class","占い師"),Player.equalTo("class","怪盗")).fetchAll()
+          winner = await Player.equalTo("roomSlug",change.roomSlug).or(Player.equalTo("new_class","村人"),Player.equalTo("new_class","占い師"),Player.equalTo("new_class","怪盗")).fetchAll()
         }
 
+        let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
+        classroom.set("result",{exected: excuted,winside: winside,winner:winner,player:players})
+        let socketresult = await classroom.update()
 
         //ゲーム結果画面に遷移指示
         for (let man of players) {
