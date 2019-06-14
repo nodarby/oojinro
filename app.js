@@ -437,6 +437,7 @@ io.on('connection',function(socket){
     })()
   })
 
+  //行動の終了
   socket.on("/ws/v1/game/request_night_end",function(change){
     console.log("行動終わったって")
     (async()=>{
@@ -461,14 +462,7 @@ io.on('connection',function(socket){
             phase: man.phase
           })
         }
-
-      } else{
-        console.log("送ります")
-        io.to(player.socketSlug).emit("/ws/v1/game/response_night_end", {
-          phase: player.phase
-        })
       }
-
     })
   })
 })
