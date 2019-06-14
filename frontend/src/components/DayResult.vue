@@ -1,13 +1,9 @@
 <template>
   <div style="padding: 16px;">
     <div>
-      <div style="font-size: 2em;">おそろしい夜が明けました．</div>
-      話し合って，人狼だと疑わしい人を投票してください．
-      <select v-model="target">
-        <option value="">-</option>
-        <option v-for="user in roomUsers.filter((u)=>{return u.slug != userSlug})" :value="user">{{ user.name }}</option>
-      </select>
-      <button @click="action()" :disabled="!target">投票</button>
+      <div style="font-size: 2em;">{{ userVote.name }}に投票しました．</div>
+      通信待機中．<br/>
+      しばらくお待ちください．
     </div>
   </div>
 </template>
@@ -26,21 +22,16 @@
       userPhase: function () { return this.$store.getters['user/phase'] },
       userKlass: function () { return this.$store.getters['user/klass'] },
       userNewKlass: function () { return this.$store.getters['user/newKlass'] },
-      userTarget: function () { return this.$store.getters['user/target'] }
+      userTarget: function () { return this.$store.getters['user/target'] },
+      userVote: function () { return this.$store.getters['user/vote'] }
     },
     created: function () {
       // メンバーの変更のソケットを受け付ける
       const socket = this.$store.getters['socket/socket']
       const that = this
-      socket.on('/ws/v1/game/response_day_end', function(res){
-        console.log(res)
-        that.$store.commit('user/vote', res.vote)
-        that.$store.commit('user/phase', 'DayResult')
-      })
     },
     destroyed: function () {
       const socket = this.$store.getters['socket/socket']
-      socket.off('/ws/v1/game/response_day_end')
     },
     methods: {
       action () {

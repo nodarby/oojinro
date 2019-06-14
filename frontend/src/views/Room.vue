@@ -27,6 +27,7 @@
   import NightResult from '../components/NightResult'
   import NightEnd from '../components/NightEnd'
   import DayAction from '../components/DayAction'
+  import DayResult from '../components/DayResult'
 
   export default {
     data () {
@@ -39,7 +40,8 @@
       NightAction,
       NightResult,
       NightEnd,
-      DayAction
+      DayAction,
+      DayResult
     },
     computed: {
       roomSlug: function () {return this.$router.history.current.params.roomSlug},
@@ -70,6 +72,11 @@
             console.log('夜は明けるだろう…なんどもな…！')
             console.log(res)
             that.$store.commit('user/phase', 'DayAction')
+          })
+          socket.on('/ws/v1/game/response_game_result', function(res){
+            console.log('昼も終わるだろう…なんどもな！')
+            console.log(res)
+            that.$store.commit('user/phase', 'GameResult')
           })
 
           // 画面を見せる

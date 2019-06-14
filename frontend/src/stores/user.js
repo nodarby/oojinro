@@ -6,7 +6,8 @@ const state = {
   phase: null,
   klass: null,
   newKlass: null,
-  target: null
+  target: null,
+  vote: null
 }
 export default {
   namespaced: true,
@@ -29,6 +30,9 @@ export default {
     },
     target: (state) => {
       return state.target
+    },
+    vote: (state) => {
+      return state.vote
     }
   },
   mutations: {
@@ -48,8 +52,10 @@ export default {
       state.newKlass = payload
     },
     target: (state, payload) => {
-      console.log(payload)
       state.target = payload
+    },
+    vote: (state, payload) => {
+      state.vote = payload
     }
   },
   actions: {
