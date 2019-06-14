@@ -49,11 +49,13 @@
       console.log(socket)
 
       socket.on('/ws/v1/room/response_class_change', function(res){
-        // console.log('役職の割り振りが変更されたよ〜', res)
+        console.log('役職の割り振りが変更されたよ〜', res)
         that.roomClasses = res.classes
       })
       socket.on('/ws/v1/game/response_start', function(res){
         alert('ゲーム開始しました！^^')
+        that.$store.commit('user/phase', 'NightAction')
+        that.$store.commit('user/klass', res.class)
       })
     },
     destroyed: function () {

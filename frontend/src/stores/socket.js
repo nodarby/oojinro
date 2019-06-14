@@ -19,7 +19,12 @@ export default {
   actions: {
     connect: function(context) {
       let that = this
-      const socket = io.connect(process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/')
+      const socket = io.connect(process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/', {
+        'reconnection': true,
+        'reconnectionDelay': 1000,
+        'reconnectionDelayMax' : 5000,
+        'reconnectionAttempts': 100
+      })
       context.commit('socket', socket)
 
       socket.on('/ws/v1/room/entered', function(res){

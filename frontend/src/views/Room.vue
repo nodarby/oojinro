@@ -2,11 +2,10 @@
   <div v-if="!isLoading">
     <div>
       <div>ルーム{{ roomSlug }}</div>
+      <div>{{ userName }}({{ userKlass }})[{{ userPhase }}]</div>
     </div>
     <div>
-      {{ userPhase }}
-      <GameWaiting></GameWaiting>
-      <!--
+      <component :is="userPhase"></component>
       <div>{{ userName }}({{ userSlug }})</div>
       <div>メンバー</div>
       <ul>
@@ -16,7 +15,6 @@
       <ul>
         <li v-for="(value, klass) in roomClasses">{{klass}}×{{ value || 0 }}</li>
       </ul>
-      //-->
     </div>
   </div>
   <div v-else>
@@ -25,6 +23,7 @@
 </template>
 <script>
   import GameWaiting from '../components/GameWaiting'
+  import NightAction from '../components/NightAction'
 
   export default {
     data () {
@@ -33,7 +32,8 @@
       }
     },
     components: {
-      GameWaiting
+      GameWaiting,
+      NightAction
     },
     computed: {
       roomSlug: function () {return this.$router.history.current.params.roomSlug},
@@ -41,7 +41,8 @@
       roomClasses: function () {return this.$store.getters['room/classes']},
       userName: function () {return this.$store.getters['user/name']},
       userSlug: function () {return this.$store.getters['user/slug']},
-      userPhase: function () { return this.$store.getters['users/phase'] }
+      userPhase: function () { return this.$store.getters['user/phase'] },
+      userKlass: function () { return this.$store.getters['user/klass'] }
     },
     created: function() {
       // 入室処理

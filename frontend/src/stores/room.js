@@ -44,6 +44,8 @@ export default {
         axios.post((process.env.NODE_ENV === 'development' ? 'http://192.168.33.10:8080/' : '/') + 'api/v1/room/create').then(function(res){
           console.log('Done Create Room')
           console.log(res.data)
+          context.commit('user/phase', 'GameWaiting', {root: true})
+          context.commit('user/klass', null, {root: true})
           resolve(res.data)
         }).catch(function(err){
           console.log('Failed Create Room')
@@ -64,6 +66,8 @@ export default {
           context.commit('slug', res.data.roomSlug)
           context.commit('users', res.data.users)
           context.commit('classes', res.data.classes)
+          context.commit('user/phase', res.data.phase, {root: true})
+          // context.commit('user/klass', null, {root: true})
           resolve(res.data)
         }).catch(function(err){
           console.log('Failed Enter Room')
