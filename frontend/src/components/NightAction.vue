@@ -72,6 +72,10 @@
         that.$store.commit('user/target', res.target)
         that.$store.commit('user/phase', 'NightResult')
       })
+      socket.once('/ws/v1/game/response_night_end', function(res){
+        console.log(res)
+        that.$store.commit('user/phase', 'DayAction')
+      })
     },
     destroyed: function () {
       const socket = this.$store.getters['socket/socket']

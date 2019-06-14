@@ -36,19 +36,6 @@
       userNewKlass: function () { return this.$store.getters['user/newKlass'] },
       userTarget: function () { return this.$store.getters['user/target'] }
     },
-    created: function () {
-      // メンバーの変更のソケットを受け付ける
-      const socket = this.$store.getters['socket/socket']
-      const that = this
-      socket.on('/ws/v1/game/response_night_end', function(res){
-        console.log(res)
-        that.$store.commit('user/phase', 'NightEnd')
-      })
-    },
-    destroyed: function () {
-      const socket = this.$store.getters['socket/socket']
-      socket.off('/ws/v1/game/response_night_end')
-    },
     methods: {
       end () {
         const socket = this.$store.getters['socket/socket']
