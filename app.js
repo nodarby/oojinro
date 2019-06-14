@@ -133,6 +133,7 @@ app.post('/api/v1/room/enter', function(req, res){
         console.log("前",oldRoomSlug)
         console.log("後",newRoom.slug)
         player.set("roomSlug",req.body.roomSlug)
+        player.set("phase","GameWaiting")
         player = await player.update()
 
         //同じ部屋の人数分村人を増やす
@@ -278,6 +279,9 @@ io.on('connection',function(socket){
         items.splice(random,1)
       }
       console.log("場のカード",items)
+      let room = await Room.equalTo("slug",change.roomSlug).fetch()
+      room.set("field",items)
+      let socketresult = await room.update()
 
       //送信処理
       for(let player of players){
