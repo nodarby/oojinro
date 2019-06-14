@@ -313,8 +313,9 @@ io.on('connection',function(socket){
         })
       } else {
         let player = await Player.equalTo("slug", change.targetSlug).fetch()
+        let uranai = await Player.equalTo("slug", change.userSlug).fetch()
         console.log("送ります")
-        io.to(player.socketSlug).emit("/ws/v1/game/response_uranai", {
+        io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai", {
           targetClass: player.class
         })
       }
