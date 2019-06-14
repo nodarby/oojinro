@@ -254,11 +254,16 @@ io.on('connection',function(socket){
       let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
 
       var items=[]
-
+      console.log(classroom.classes)
       //配列に役職を加える
-      for(let key of classroom.classes.length)
-        for(let i of classroom.classes.key)
+      for(let key in classroom.classes){
+        console.log(classroom.classes[key])
+        var num = classroom.classes[key]
+        for(var i=0;i<num;i++){
           items.push(key)
+        }
+      }
+
 
       console.log("役職格納",items)
 
@@ -270,7 +275,7 @@ io.on('connection',function(socket){
         console.log( items[random] )
         player.set("class",items[random])
         let socketresult = await player.update()
-        delete items[random]
+        items.splice(random,1)
       }
       console.log("場のカード",items)
 
