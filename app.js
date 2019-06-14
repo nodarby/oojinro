@@ -159,6 +159,7 @@ app.post('/api/v1/room/enter', function(req, res){
       const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
       console.log("ほかのひと探したよ2",players)
       let man = await Player.equalTo("slug",req.body.userSlug).fetch()
+      let tag = await Player.equalTo("slug",man.target).fetch()
       if(man.phase == "NightResult" || man.phase == "NightEnd"){
         res.json({
           users: players,
@@ -167,7 +168,7 @@ app.post('/api/v1/room/enter', function(req, res){
           phase: man.phase,
           class: man.class,
           new_class: man.new_class,
-          target: man.target
+          target: {slug:tag.slug,name:tag.name}
         })
       }else{
         res.json({
