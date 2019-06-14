@@ -225,6 +225,7 @@ app.use(function(req, res, next) {
 
 io.on('connection',function(socket){
 
+  //役職変更処理
   socket.on("/ws/v1/room/request_class_change",function(change){
     console.log("発火したぞ",change);
     (async()=>{
@@ -233,6 +234,7 @@ io.on('connection',function(socket){
       classroom.set("classes",change.classes)
       let result = await classroom.update()
 
+      //送信処理（本人以外）
       let players = await Player.equalTo("roomSlug",change.roomSlug).notEqualTo("slug",change.userSlug).fetchAll()
       for(let player of players){
         console.log("この人",players)
@@ -244,27 +246,54 @@ io.on('connection',function(socket){
     })()
   })
 
+  //ゲーム開始処理
+  socket.on("/ws/v1/game/request_start",function(change){
+    console.log("ゲーム始めるってよ",change);
+    (async()=>{
+
+      let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
+
+      var items=[]
+
+      //配列に役職を加える
+      for(let key of classroom.classes.length)
+        for(let i of classroom.classes.key)
+          items.push(key)
+
+      console.log("役職格納",items)
+
+
+      //ループして役職分配
+      let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+      for(let player of players){
+        var random = Math.floor(Math.random() * items.length )
+        console.log( items[random] )
+        player.set("class",items[random])
+        let socketresult = await player.update()
+        delete items[random]
+      }
+      console.log("場のカード",items)
+
+      //送信処理
+      for(let player of players){
+        console.log("送ります",player)
+        io.to(player.socketSlug).emit("/ws/v1/game/response_start",{
+          class: player.class
+        })
+      }
+    })()
+  })
+
 })
 
-/*
-const arr = [1,2,3,4,5,6,7,8,9]
-const a = arr.length
-
-//シャッフルアルゴリズム
-while (a) {
-    const j = Math.floor( Math.random() * a )
-    const t = arr[--a]
-    arr[a] = arr[j]
-    arr[j] = t
-}
-
-//シャッフルされた配列の要素を順番に表示する
-arr.forEach( function( value ) {console.log( value )} )
-return ""
-}
 
 
-*/
+
+
+
+
+
+
 http.listen(PORT, function(){
     console.log('server listening. Port:' + PORT);
 });
