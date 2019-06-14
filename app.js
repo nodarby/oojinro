@@ -336,7 +336,7 @@ io.on('connection',function(socket){
         let socketresult = await uranai.update()
 
         io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai", {
-          targetClass: player.class,
+          target: player,
           phase: uranai.phase
         })
 
@@ -357,7 +357,7 @@ io.on('connection',function(socket){
       let socketresult = await kaito.update()
       console.log("送ります")
       io.to(kaito.socketSlug).emit("/ws/v1/game/response_kaito", {
-        targetClass: player.class,
+        target: player,
         phase: kaito.phase
       })
 
@@ -371,6 +371,31 @@ io.on('connection',function(socket){
     })()
   })
 
+  //怪盗の夜の行動
+  socket.on("/ws/v1/game/request_jinro",function(change){
+    console.log("人狼",change);
+    (async()=>{
+
+      let jinro = await Player.equalTo("slug", change.userSlug).fetch()
+      let players = await Player.equalTo("class", jinro.class).equalTo("roomSlug", change.roomSlug).fetchAll()
+
+      jinro.set("phase","NightResult")
+      let socketresult = await jinro.update()
+      console.log("送ります")
+
+      var mate = []
+      for(let player of players){
+        mate.push(player)
+      }
+      jinro.set("target",mate)
+      let socketresult = await jinro.update()
+      io.to(jinro.socketSlug).emit("/ws/v1/game/response_jinro", {
+        target: mate,
+        phase: jinro.phase
+      })
+
+    })()
+  })
 
   socket.on("/ws/v1/game/request_night_end",function(change){
     console.log("行動終わったって")
