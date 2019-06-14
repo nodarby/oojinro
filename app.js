@@ -556,7 +556,7 @@ io.on('connection',function(socket){
         }
 
         let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
-        classroom.set("result",{executed: excuted,winside: winside,winner:winner,player:players})
+        classroom.set("result",{executed: executed,winside: winside,winner:winner,player:players})
         let socketresult = await classroom.update()
 
         //ゲーム結果画面に遷移指示
