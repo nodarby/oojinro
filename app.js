@@ -303,19 +303,20 @@ io.on('connection',function(socket){
 
       //占い場所が場かどうか
       if (change.targetSlug == ""){
-        let classroom = await Room.equalTo("roomSlug",change.roomSlug).fetch()
+        console.log("場だね")
+        let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
         let player = await Player.equalTo("slug", change.userSlug).fetch()
-        console.log("送ります",player)
+        console.log("送ります")
 
         io.to(player.socketSlug).emit("/ws/v1/game/response_uranai",{
           fieldClass: classroom.field
         })
       } else {
         let player = await Player.equalTo("slug", change.targetSlug).fetch()
-          console.log("送ります", player)
-          io.to(player.socketSlug).emit("/ws/v1/game/response_uranai", {
-            targetClass: player.class
-          })
+        console.log("送ります")
+        io.to(player.socketSlug).emit("/ws/v1/game/response_uranai", {
+          targetClass: player.class
+        })
       }
     })()
   })
