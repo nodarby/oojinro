@@ -133,6 +133,7 @@ app.post('/api/v1/room/enter', function(req, res){
         console.log("前",oldRoomSlug)
         console.log("後",newRoom.slug)
         player.set("roomSlug",req.body.roomSlug)
+        player.set("phase","GameWaiting")
         player = await player.update()
 
         //同じ部屋の人数分村人を増やす
@@ -148,7 +149,8 @@ app.post('/api/v1/room/enter', function(req, res){
           io.to(player.socketSlug).emit("/ws/v1/room/entered",{
             users: players,
             roomSlug: newRoom.slug,
-            classes: newRoom.classes
+            classes: newRoom.classes,
+            phase: player.phase
           })
         }
       }
@@ -156,11 +158,84 @@ app.post('/api/v1/room/enter', function(req, res){
       //リロードの場合、元の部屋の情報を与える
       const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
       console.log("ほかのひと探したよ2",players)
-      res.json({
-        users: players,
-        roomSlug: newRoom.slug,
-        classes: newRoom.classes
-      })
+      let man = await Player.equalTo("slug",req.body.userSlug).fetch()
+      if(man.class == "人狼"){
+        if(man.phase == "NightResult" || man.phase == "NightEnd"){
+          res.json({
+            users: players,
+            roomSlug: newRoom.slug,
+            classes: newRoom.classes,
+            phase: man.phase,
+            class: man.class,
+            new_class: man.new_class,
+            target: man.target
+          })
+        }else{
+          res.json({
+            users: players,
+            roomSlug: newRoom.slug,
+            classes: newRoom.classes,
+            phase: man.phase,
+            class: man.class
+          })
+        }
+      }else{
+        if(man.phase == "NightResult" || man.phase == "NightEnd"){
+          if(man.target == "field") {
+            let classroom = await Room.equalTo("slug", req.body.roomSlug).fetch()
+            res.json({
+              users: players,
+              roomSlug: newRoom.slug,
+              classes: newRoom.classes,
+              phase: man.phase,
+              class: man.class,
+              new_class: man.new_class,
+              target: {field: true, class: classroom.field}
+            })
+          }else{
+            let tag = await Player.equalTo("slug",man.target).fetch()
+            res.json({
+              users: players,
+              roomSlug: newRoom.slug,
+              classes: newRoom.classes,
+              phase: man.phase,
+              class: man.class,
+              new_class: man.new_class,
+              target: {field:false,slug:tag.slug,name:tag.name,class:tag.class}
+
+            })
+          }
+        }else if(man.phase == "DayResult") {
+          let vot = await Player.equalTo("slug", player.vote).fetch()
+          res.json({
+            users: players,
+            roomSlug: newRoom.slug,
+            classes: newRoom.classes,
+            phase: man.phase,
+            class: man.class,
+            vote: {slug: vot.slug, name: vot.name}
+          })
+        }else if(man.phase == "GameResult") {
+          let classroom = await Room.equalTo("slug",req.body.roomSlug).fetch()
+          res.json({
+            users: players,
+            roomSlug: newRoom.slug,
+            classes: newRoom.classes,
+            phase: man.phase,
+            class: man.class,
+            result:classroom.result
+          })
+        }else{
+          let tag = await Player.equalTo("slug",man.target).fetch()
+          res.json({
+            users: players,
+            roomSlug: newRoom.slug,
+            classes: newRoom.classes,
+            phase: man.phase,
+            class: man.class
+          })
+        }
+      }
 
       //部屋が存在しない場合エラーを返す
     }else{
@@ -191,31 +266,7 @@ app.post("/api/v1/socket/connected",function(req,res){
     })
   })
 
-/*
-app.post("/api/v1/room/class",function(req,res){
-  (async()=>{
 
-    let room = await Room.equalTo("slug",req.body.roomSlug)
-    console.log("見つけたよ",room)
-    room.set("classes",req.body.classes)
-    let class = await room.update()
-    console.log("更新したよ",class)
-
-    const players = await Player.equalTo("roomSlug",class.slug).fetchAll()
-    for(let player of players){
-      console.log("送ります",player)
-      io.to(player.socketSlug).emit("/ws/v1/room/class",{
-        classes: .classes
-      })
-    }
-  })().catch(function (){
-    res.status(500).json({})
-  })
-})
-*/
-// ファイルのルーティング
-
-// frontend/distフォルダを返す
 app.use(express.static('frontend/dist'))
 // 存在しなければindex.htmlを返す
 app.use(function(req, res, next) {
@@ -225,6 +276,7 @@ app.use(function(req, res, next) {
 
 io.on('connection',function(socket){
 
+  //役職変更処理
   socket.on("/ws/v1/room/request_class_change",function(change){
     console.log("発火したぞ",change);
     (async()=>{
@@ -233,10 +285,9 @@ io.on('connection',function(socket){
       classroom.set("classes",change.classes)
       let result = await classroom.update()
 
-      let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+      //送信処理（本人以外）
+      let players = await Player.equalTo("roomSlug",change.roomSlug).notEqualTo("slug",change.userSlug).fetchAll()
       for(let player of players){
-        console.log("この人",players)
-        console.log("送ります",player)
         io.to(player.socketSlug).emit("/ws/v1/room/response_class_change",{
           classes: change.classes
         })
@@ -244,27 +295,319 @@ io.on('connection',function(socket){
     })()
   })
 
+  //ゲーム開始処理
+  socket.on("/ws/v1/game/request_start",function(change){
+    console.log("ゲーム始めるってよ",change);
+    (async()=>{
+
+      let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
+
+      var items=[]
+      console.log(classroom.classes)
+      //配列に役職を加える
+      for(let key in classroom.classes){
+        console.log(classroom.classes[key])
+        var num = classroom.classes[key]
+        for(var i=0;i<num;i++){
+          items.push(key)
+        }
+      }
+
+      //ループして役職分配
+      let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+      for(let player of players){
+        var random = Math.floor(Math.random() * items.length )
+        console.log( items[random] )
+        player.set("class",items[random])
+        player.set("new_class",items[random])
+        player.set("target","")
+        player.set("phase","NightAction")
+        player.set("vote","")
+        let socketresult = await player.update()
+        items.splice(random,1)
+      }
+      console.log("場のカード",items)
+      let room = await Room.equalTo("slug",change.roomSlug).fetch()
+      room.set("field",items)
+      room.set("enableFlag","False")
+      let socketresult = await room.update()
+
+      //送信処理
+      for(let player of players){
+        console.log("送ります",player)
+        io.to(player.socketSlug).emit("/ws/v1/game/response_start",{
+          class: player.class
+        })
+      }
+    })()
+  })
+
+  //占いの夜の行動
+  socket.on("/ws/v1/game/request_uranai",function(change){
+    console.log("占い",change);
+    (async()=>{
+
+      //占い場所が場かどうか
+      if (change.targetSlug == ""){
+        console.log("場だね")
+        let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
+        let uranai = await Player.equalTo("slug", change.userSlug).fetch()
+        console.log("送ります")
+        uranai.set("phase","NightResult")
+        uranai.set("target","field")
+        let socketresult = await uranai.update()
+
+        io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai",{
+          target: {field: true, class: classroom.field},
+          phase:uranai.phase
+        })
+
+      } else {
+        let player = await Player.equalTo("slug", change.targetSlug).fetch()
+        let uranai = await Player.equalTo("slug", change.userSlug).fetch()
+        console.log("送ります")
+        uranai.set("phase","NightResult")
+        uranai.set("target",player.slug)
+        let socketresult = await uranai.update()
+
+        io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai", {
+          target: {slug:player.slug,name:player.name,class:player.class},
+          phase: uranai.phase
+        })
+
+      }
+    })()
+  })
+
+
+  //怪盗の夜の行動
+  socket.on("/ws/v1/game/request_kaito",function(change){
+    console.log("怪盗",change);
+    (async()=>{
+
+      let player = await Player.equalTo("slug", change.targetSlug).fetch()
+      let kaito = await Player.equalTo("slug", change.userSlug).fetch()
+
+      kaito.set("phase","NightResult")
+      let socketresult = await kaito.update()
+      console.log("送ります")
+      io.to(kaito.socketSlug).emit("/ws/v1/game/response_kaito", {
+        target: {slug:player.slug,name:player.name},
+        new_class:player.class,
+        phase: kaito.phase
+      })
+
+      let tmp = player.class
+      player.set("new_class",kaito.class)
+      kaito.set("new_class",tmp)
+      kaito.set("target",player.slug)
+      socketresult = await player.update()
+      socketresult = await kaito.update()
+
+    })()
+  })
+
+  //人狼の夜の行動
+  socket.on("/ws/v1/game/request_jinro",function(change){
+    console.log("人狼",change);
+    (async()=>{
+
+      let jinro = await Player.equalTo("slug", change.userSlug).fetch()
+      let players = await Player.equalTo("class", jinro.class).equalTo("roomSlug", change.roomSlug).notEqualTo("slug",change.userSlug).fetchAll()
+
+      jinro.set("phase","NightResult")
+      let socketresult = await jinro.update()
+      console.log("送ります")
+
+      var mate = []
+      for(let player of players){
+        mate.push({slug:player.slug,name:player.name})
+      }
+      jinro.set("target",mate)
+      socketresult = await jinro.update()
+      io.to(jinro.socketSlug).emit("/ws/v1/game/response_jinro", {
+        target: mate,
+        phase: jinro.phase
+      })
+
+    })()
+  })
+
+  //夜の行動の終了
+  socket.on("/ws/v1/game/request_night_end",function(change){
+    (async()=>{
+      console.log("夜の行動終わったって")
+      let player = await Player.equalTo("slug", change.userSlug).fetch()
+      player.set("phase","NightEnd")
+      let socketresult = await player.update()
+
+      let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+      let flag = true
+      for(let man of players){
+        if(man.phase != "NightEnd"){
+          flag = false
+        }
+      }
+      if(flag) {
+        console.log("送ります")
+        for(let man of players){
+          man.set("phase","DayAction")
+          let socketresult = await man.update()
+          io.to(man.socketSlug).emit("/ws/v1/game/response_night_end", {
+            phase: man.phase
+          })
+        }
+      }
+    })()
+  })
+
+
+  //昼の行動の終了
+  socket.on("/ws/v1/game/request_day_end",function(change){
+    (async()=>{
+      console.log("昼の行動終わったって")
+      let player = await Player.equalTo("slug", change.userSlug).fetch()
+      player.set("phase","DayResult")
+      player.set("vote",change.targetSlug)
+      let socketresult = await player.update()
+
+      let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+      let flag = true
+      for(let man of players){
+        if(man.phase != "DayResult"){
+          flag = false
+        }
+      }
+      if(flag) {
+        var voteResult = {}
+        let players = await Player.equalTo("roomSlug", change.roomSlug).fetchAll()
+        for (let player of players) {
+          if (voteResult[player.vote] == undefined) {
+            voteResult[player.vote] = 1
+          } else {
+            voteResult[player.vote] += 1
+          }
+        }
+        console.log(voteResult)
+        let maxSlugs = null
+        let max = 0
+        for (let key in voteResult) {
+          if (voteResult[key] > max) {
+            max = voteResult[key]
+            maxSlugs = [key]
+          } else if (voteResult[key] == max) {
+            maxSlugs.push(key)
+          }
+        }
+
+        console.log(maxSlugs)
+        let winside = ""
+
+        var executed = []
+        console.log(max)
+        if(max != 1){
+          for (let execute of maxSlugs){
+            let person = await Player.equalTo("slug", execute).fetch()
+            executed.push(person)
+          }
+        }
+
+
+        if(max != 1){
+          for (let exe of maxSlugs) {
+            if (winside != "吊人") {
+              let player = await Player.equalTo("slug", exe).fetch()
+              if (player.new_class == "吊人") {
+                winside = "吊人"
+                console.log("吊人")
+              } else if (player.new_class == "人狼") {
+                winside = "市民"
+                console.log("市民")
+              } else {
+               if (winside != "市民") {
+                 winside = "人狼"
+                 console.log("人狼")
+               }
+              }
+            }
+          }
+        }else{
+          let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+          for(let player of players){
+            if(player.new_class == "人狼"){
+              winside = "人狼"
+              console.log("平和村人狼")
+            }
+          }
+          if(winside != "人狼"){
+            winside = "市民"
+            console.log("平和村市民")
+          }
+        }
+
+
+        let winner = ""
+        if(winside == "人狼"){
+          winner = await Player.equalTo("roomSlug",change.roomSlug).or(Player.equalTo("new_class","人狼"),Player.equalTo("new_class","狂人")).fetchAll()
+        }else if(winside == "吊人"){
+          winner = await Player.equalTo("roomSlug",change.roomSlug).equalTo("new_class","吊人").fetchAll()
+        }else{
+          winner = await Player.equalTo("roomSlug",change.roomSlug).or([Player.equalTo("new_class","村人"),Player.equalTo("new_class","占い師"),Player.equalTo("new_class","怪盗")]).fetchAll()
+        }
+
+        let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
+        classroom.set("result",{executed: executed,winside: winside,winner:winner,player:players})
+        let socketresult = await classroom.update()
+
+        //ゲーム結果画面に遷移指示
+        for (let man of players) {
+          man.set("phase", "GameResult")
+          let socketresult = await man.update()
+          io.to(man.socketSlug).emit("/ws/v1/game/response_game_result", {
+          result:{phase: man.phase, executed: executed, winside: winside, winner:winner, player:players}
+          })
+        }
+
+      }else{
+        let vot = await Player.equalTo("slug",player.vote).fetch()
+        io.to(player.socketSlug).emit("/ws/v1/game/response_day_end", {
+          phase: player.phase,
+          vote:{slug:player.vote,name:vot.name}
+        })
+      }
+    })().catch((err)=>{
+      console.log(err)
+    })
+  })
+
+
+  //投票のキャンセル
+  socket.on("/ws/v1/game/request_day_cancel",function(change){
+    (async()=>{
+      console.log("投票キャンセル")
+      let player = await Player.equalTo("slug", change.userSlug).fetch()
+      player.set("phase","DayAction")
+      player.set("vote","")
+      let socketresult = await player.update()
+      io.to(player.socketSlug).emit("/ws/v1/game/response_night_end", {
+        phase: player.phase
+      })
+
+    })().catch((err)=>{
+      console.log(err)
+    })
+  })
+
 })
 
-/*
-const arr = [1,2,3,4,5,6,7,8,9]
-const a = arr.length
-
-//シャッフルアルゴリズム
-while (a) {
-    const j = Math.floor( Math.random() * a )
-    const t = arr[--a]
-    arr[a] = arr[j]
-    arr[j] = t
-}
-
-//シャッフルされた配列の要素を順番に表示する
-arr.forEach( function( value ) {console.log( value )} )
-return ""
-}
 
 
-*/
+
+
+
+
+
+
 http.listen(PORT, function(){
     console.log('server listening. Port:' + PORT);
 });

@@ -1,16 +1,21 @@
 <template>
   <div v-if="!isLoading">
-    <h1>ルーム{{ roomSlug }}</h1>
-    <h3>{{ userName }}({{ userSlug }})</h3>
-    <h2>メンバー</h2>
-    <ul>
-      <li v-for="roomUser in roomUsers">{{roomUser.name}}({{roomUser.slug}})</li>
-    </ul>
-    <h2>役職</h2>
-    <ul>
-      <li v-for="(value, klass) in roomClasses">{{klass}}×{{ value || 0 }}</li>
-    </ul>
-    <GameWaiting></GameWaiting>
+    <div>
+      <div>ルーム{{ roomSlug }}</div>
+      <div>{{ userName }}({{ userKlass }})[{{ userPhase }}]</div>
+    </div>
+    <div>
+      <component :is="userPhase"></component>
+      <div>{{ userName }}</div>
+      <div>メンバー</div>
+      <ul>
+        <li v-for="roomUser in roomUsers">{{roomUser.name}}</li>
+      </ul>
+      <div>役職</div>
+      <ul>
+        <li v-for="(value, klass) in roomClasses">{{klass}}×{{ value || 0 }}</li>
+      </ul>
+    </div>
   </div>
   <div v-else>
     入室中...
@@ -18,6 +23,12 @@
 </template>
 <script>
   import GameWaiting from '../components/GameWaiting'
+  import NightAction from '../components/NightAction'
+  import NightResult from '../components/NightResult'
+  import NightEnd from '../components/NightEnd'
+  import DayAction from '../components/DayAction'
+  import DayResult from '../components/DayResult'
+  import GameResult from '../components/GameResult'
 
   export default {
     data () {
@@ -26,14 +37,22 @@
       }
     },
     components: {
-      GameWaiting
+      GameWaiting,
+      NightAction,
+      NightResult,
+      NightEnd,
+      DayAction,
+      DayResult,
+      GameResult
     },
     computed: {
       roomSlug: function () {return this.$router.history.current.params.roomSlug},
       roomUsers: function () {return this.$store.getters['room/users']},
       roomClasses: function () {return this.$store.getters['room/classes']},
       userName: function () {return this.$store.getters['user/name']},
-      userSlug: function () {return this.$store.getters['user/slug']}
+      userSlug: function () {return this.$store.getters['user/slug']},
+      userPhase: function () { return this.$store.getters['user/phase'] },
+      userKlass: function () { return this.$store.getters['user/klass'] }
     },
     created: function() {
       // 入室処理
@@ -45,6 +64,25 @@
             that.$router.push({path: '/profile', query: {redirect_to: '/room/'+that.roomSlug}})
             return
           }
+          that.$store.commit('user/newKlass', res.new_class)
+          that.$store.commit('user/klass', res.class)
+          that.$store.commit('user/target', res.target)
+          that.$store.commit('user/phase', res.phase)
+          that.$store.commit('room/result', res.result)
+
+          const socket = that.$store.getters['socket/socket']
+          socket.on('/ws/v1/game/response_night_end', function(res){
+            console.log('夜は明けるだろう…なんどもな…！')
+            console.log(res)
+            that.$store.commit('user/phase', 'DayAction')
+          })
+          socket.on('/ws/v1/game/response_game_result', function(res){
+            console.log('昼も終わるだろう…なんどもな！')
+            console.log(res)
+            that.$store.commit('room/result', res.result)
+            that.$store.commit('user/phase', 'GameResult')
+          })
+
           // 画面を見せる
           that.isLoading = false
         }).catch(function(err){

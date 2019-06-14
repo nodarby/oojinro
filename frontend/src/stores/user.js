@@ -2,7 +2,12 @@ import axios from 'axios'
 
 const state = {
   name: '',
-  slug: ''
+  slug: '',
+  phase: null,
+  klass: null,
+  newKlass: null,
+  target: null,
+  vote: null
 }
 export default {
   namespaced: true,
@@ -13,6 +18,21 @@ export default {
     },
     slug: (state) => {
       return state.slug
+    },
+    phase: (state) => {
+      return state.phase
+    },
+    klass: (state) => {
+      return state.klass
+    },
+    newKlass: (state) => {
+      return state.newKlass
+    },
+    target: (state) => {
+      return state.target
+    },
+    vote: (state) => {
+      return state.vote
     }
   },
   mutations: {
@@ -21,6 +41,21 @@ export default {
     },
     slug: (state, payload) => {
       state.slug = payload
+    },
+    phase: (state, payload) => {
+      state.phase = payload
+    },
+    klass: (state, payload) => {
+      state.klass = payload
+    },
+    newKlass: (state, payload) => {
+      state.newKlass = payload
+    },
+    target: (state, payload) => {
+      state.target = payload
+    },
+    vote: (state, payload) => {
+      state.vote = payload
     }
   },
   actions: {

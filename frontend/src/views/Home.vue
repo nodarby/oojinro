@@ -2,12 +2,20 @@
   <div class="home">
     <h1>一夜人狼</h1>
     <div>
-      <input type="button" value="部屋を作る" @click="createRoom()">
+      <div style="font-size: 1.5em">つづきから</div>
+      <router-link :to="'/room/'+roomSlug">ルーム{{ roomSlug }}へ</router-link>
     </div>
-
     <div>
-      <input type="text" v-model="roomSlugTemp">
-      <input type="button" value="部屋に入る" @click="findRoom()">
+      <div style="font-size: 1.5em">はじめから</div>
+      <div>
+        <input type="button" value="部屋を作る" @click="createRoom()">
+      </div>
+      <div>
+        <input type="text" v-model="roomSlugTemp" style="display: inline-block"><input type="button" value="部屋に入る" @click="findRoom()" style="display: inline-block">
+      </div>
+    </div>
+    <div>
+      <router-link to="/profile">プロフィールの編集</router-link>
     </div>
   </div>
 </template>
@@ -17,6 +25,9 @@
       return {
         roomSlugTemp: ''
       }
+    },
+    computed: {
+      roomSlug: function () {return this.$store.getters['room/slug']}
     },
     methods: {
       createRoom: function () {
