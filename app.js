@@ -483,19 +483,47 @@ io.on('connection',function(socket){
         }
       }
       if(flag) {
+        var voteResult = []
+        let players = await Player.equalTo("slug", change.roomSlug).fetchAll()
+        for (let player of players) {
+          voteResult.player.name += player.vote
+        }
+        console.log(voteResult)
+
 
         //ゲーム結果画面に遷移指示
-        for(let man of players){
-          man.set("phase","DayAction")
+        for (let man of players) {
+          man.set("phase", "DayAction")
           let socketresult = await man.update()
           io.to(man.socketSlug).emit("/ws/v1/game/response_day_result", {
             phase: man.phase
           })
         }
+      }else{
+        let vot = await Player.equalTo("slug",player.vote).fetch()
+        io.to(player.socketSlug).emit("/ws/v1/game/response_day_end", {
+          phase: player.phase
+          vote:{slug:player.vote,name:vot.name}
+        })
       }
     })()
   })
 
+
+  //投票のキャンセル
+  socket.on("/ws/v1/game/request_day_cancel",function(change){
+    (async()=>{
+      console.log("投票キャンセル")
+      let player = await Player.equalTo("slug", change.userSlug).fetch()
+      player.set("phase","DayAction")
+      player.set("vote","")
+      let socketresult = await player.update()
+      io.to(player.socketSlug).emit("/ws/v1/game/response_night_end", {
+        phase: player.phase
+      })
+
+    })()
+  })
 
 })
 
