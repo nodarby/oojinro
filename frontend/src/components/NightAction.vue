@@ -7,12 +7,17 @@
       </span>
       <span v-else-if="userKlass == '占い師'">
         あなたは占い師です．占えェ．
-        <select v-model="targetSlug">
-          <option value="">-</option>
-          <option v-for="user in roomUsers" :value="user.slug">{{ user.name }}</option>
-        </select>
-        <button @click="action()">占う</button>
-        <div></div>
+        <div v-if="uranaiResult">
+          {{ uranaiResult }}でした．乙．
+          <button>終わり</button>
+        </div>
+        <div v-else>
+          <select v-model="targetSlug">
+            <option value="">-</option>
+            <option v-for="user in roomUsers" :value="user.slug">{{ user.name }}</option>
+          </select>
+          <button @click="action()">占う</button>
+        </div>
       </span>
       <span v-else-if="userKlass == '吊人'">
         あなたは吊人です．◯ねぇ．
@@ -36,7 +41,8 @@
   export default {
     data () {
       return {
-        targetSlug: ''
+        targetSlug: '',
+        uranaiResult: ''
       }
     },
     computed: {
@@ -52,7 +58,8 @@
       const socket = this.$store.getters['socket/socket']
       const that = this
       socket.on('/ws/v1/game/response_uranai', function(res){
-        console.log(res)
+        console.log(res.targetClass)
+        that.uranaiResult = res.targetClass
       })
     },
     destroyed: function () {
