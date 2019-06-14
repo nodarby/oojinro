@@ -189,7 +189,7 @@ app.post('/api/v1/room/enter', function(req, res){
             phase: man.phase,
             class: man.class,
             new_class: man.new_class,
-            target: {slug:tag.slug,name:tag.name}
+            target: {slug:tag.slug,name:tag.name,class:tag.class}
 
           })
         }else{
