@@ -64,6 +64,14 @@
           that.$store.commit('user/klass', res.class)
           that.$store.commit('user/target', res.target)
           that.$store.commit('user/phase', res.phase)
+
+          const socket = that.$store.getters['socket/socket']
+          socket.on('/ws/v1/game/response_night_end', function(res){
+            console.log('夜は明けるだろう…なんどもな…！')
+            console.log(res)
+            that.$store.commit('user/phase', 'DayAction')
+          })
+
           // 画面を見せる
           that.isLoading = false
         }).catch(function(err){
