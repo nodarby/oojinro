@@ -192,6 +192,16 @@ app.post('/api/v1/room/enter', function(req, res){
               new_class: man.new_class,
               target: {field:true,class:classroom.field}
             })
+          }else if(man.phase == "DayResult") {
+            let vot = await Player.equalTo("slug", player.vote).fetch()
+            res.json({
+              users: players,
+              roomSlug: newRoom.slug,
+              classes: newRoom.classes,
+              phase: man.phase,
+              class: man.class,
+              vote: {slug: vot.slug, name: vot.name}
+            })
           }else{
             let tag = await Player.equalTo("slug",man.target).fetch()
             res.json({
@@ -247,31 +257,6 @@ app.post("/api/v1/socket/connected",function(req,res){
   })
 
 
-/*
-app.post("/api/v1/room/class",function(req,res){
-  (async()=>{
-
-    let room = await Room.equalTo("slug",req.body.roomSlug)
-    console.log("見つけたよ",room)
-    room.set("classes",req.body.classes)
-    let class = await room.update()
-    console.log("更新したよ",class)
-
-    const players = await Player.equalTo("roomSlug",class.slug).fetchAll()
-    for(let player of players){
-      console.log("送ります",player)
-      io.to(player.socketSlug).emit("/ws/v1/room/class",{
-        classes: .classes
-      })
-    }
-  })().catch(function (){
-    res.status(500).json({})
-  })
-})
-*/
-// ファイルのルーティング
-
-// frontend/distフォルダを返す
 app.use(express.static('frontend/dist'))
 // 存在しなければindex.htmlを返す
 app.use(function(req, res, next) {
@@ -327,6 +312,7 @@ io.on('connection',function(socket){
         player.set("new_class",items[random])
         player.set("target","")
         player.set("phase","NightAction")
+        player.set("vote","")
         let socketresult = await player.update()
         items.splice(random,1)
       }
@@ -483,30 +469,42 @@ io.on('connection',function(socket){
         }
       }
       if(flag) {
-        var voteResult = []
+        var voteResult = {}
         let players = await Player.equalTo("slug", change.roomSlug).fetchAll()
         for (let player of players) {
-          voteResult.player.name += player.vote
+          let vot = await Player.equalTo("slug",player.vote).fetch()
+          voteResult[vot].name += 1
         }
         console.log(voteResult)
+        let max = 0
+        for(let key in voteResult){
+          if(voteResult[key] > max){
+            let maxy = await Player.equalTo("slug",key).fetch()
+            max = i
+            maxSlug = maxy.slug
+          }
+        }
 
 
         //ゲーム結果画面に遷移指示
         for (let man of players) {
-          man.set("phase", "DayAction")
+          man.set("phase", "GameResult")
           let socketresult = await man.update()
           io.to(man.socketSlug).emit("/ws/v1/game/response_day_result", {
-            phase: man.phase
+            phase: man.phase,
+            exected: {slug:maxy.slug,name:maxy.name,class:maxy.class}
           })
         }
       }else{
         let vot = await Player.equalTo("slug",player.vote).fetch()
         io.to(player.socketSlug).emit("/ws/v1/game/response_day_end", {
-          phase: player.phase
+          phase: player.phase,
           vote:{slug:player.vote,name:vot.name}
         })
       }
-    })()
+    })().catch((err)=>{
+      console.log(err)
+    })
   })
 
 
@@ -522,7 +520,9 @@ io.on('connection',function(socket){
         phase: player.phase
       })
 
-    })()
+    })().catch((err)=>{
+      console.log(err)
+    })
   })
 
 })
