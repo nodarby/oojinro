@@ -276,7 +276,7 @@ io.on('connection',function(socket){
         var random = Math.floor(Math.random() * items.length )
         console.log( items[random] )
         player.set("class",items[random])
-        player.set("phase","night_action")
+        player.set("phase","NightAction")
         let socketresult = await player.update()
         items.splice(random,1)
       }
