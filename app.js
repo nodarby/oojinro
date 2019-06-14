@@ -180,19 +180,33 @@ app.post('/api/v1/room/enter', function(req, res){
           })
         }
       }else{
-        let tag = await Player.equalTo("slug",man.target).fetch()
         if(man.phase == "NightResult" || man.phase == "NightEnd"){
-          res.json({
-            users: players,
-            roomSlug: newRoom.slug,
-            classes: newRoom.classes,
-            phase: man.phase,
-            class: man.class,
-            new_class: man.new_class,
-            target: {slug:tag.slug,name:tag.name,class:tag.class}
+          if(man.target == "field"){
+            let classroom = await Room.equalTo("slug",req.body.roomSlug).fetch()
+            res.json({
+              users: players,
+              roomSlug: newRoom.slug,
+              classes: newRoom.classes,
+              phase: man.phase,
+              class: man.class,
+              new_class: man.new_class,
+              target: {field:true,class:classroom.field}
+            })
+          }else{
+            let tag = await Player.equalTo("slug",man.target).fetch()
+            res.json({
+              users: players,
+              roomSlug: newRoom.slug,
+              classes: newRoom.classes,
+              phase: man.phase,
+              class: man.class,
+              new_class: man.new_class,
+              target: {field:false,slug:tag.slug,name:tag.name,class:tag.class}
 
-          })
+            })
+          }
         }else{
+          let tag = await Player.equalTo("slug",man.target).fetch()
           res.json({
             users: players,
             roomSlug: newRoom.slug,
