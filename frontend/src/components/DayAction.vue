@@ -1,26 +1,7 @@
 <template>
   <div style="padding: 16px;">
     <div>
-      <span v-if="userKlass == '占い師'" style="font-size: 2em;">
-        <span v-if="userTarget.field">
-          場を占ったら{{ userTarget.class }}でした<br/>
-        </span>
-        <span v-else>
-          {{ userTarget.name }}は「{{ userTarget.class }}」でした<br/>
-        </span>
-      </span>
-      <span v-else-if="userKlass == '人狼'" style="font-size: 2em;">
-        <span v-if="userTarget.length > 0">
-          <span v-for="t in userTarget">{{ t.name }}</span>が仲間です<br/>
-        </span>
-        <span v-else>
-          仲間はいないようだ…
-        </span>
-      </span>
-      <span v-else-if="userKlass == '怪盗'" style="font-size: 2em;">
-        {{ userTarget.name }}から「{{ userNewKlass }}」を奪いました！<br/>
-      </span>
-      <button @click="end">終わり</button>
+      <div style="font-size: 2em;">おそろしい夜が明けました．</div>
     </div>
   </div>
 </template>
@@ -42,7 +23,7 @@
       const that = this
       socket.on('/ws/v1/game/response_night_end', function(res){
         console.log(res)
-        that.$store.commit('user/phase', 'NightEnd')
+        that.$store.commit('user/phase', 'DayAction')
       })
     },
     destroyed: function () {

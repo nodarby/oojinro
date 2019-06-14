@@ -25,6 +25,8 @@
   import GameWaiting from '../components/GameWaiting'
   import NightAction from '../components/NightAction'
   import NightResult from '../components/NightResult'
+  import NightEnd from '../components/NightEnd'
+  import DayAction from '../components/DayAction'
 
   export default {
     data () {
@@ -35,7 +37,9 @@
     components: {
       GameWaiting,
       NightAction,
-      NightResult
+      NightResult,
+      NightEnd,
+      DayAction
     },
     computed: {
       roomSlug: function () {return this.$router.history.current.params.roomSlug},

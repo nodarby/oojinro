@@ -4,7 +4,7 @@
     <div>
       <span v-if="userKlass == '村人'">
         あなたは村人です．なにもねェ．<br/>
-          <button>終わり</button>
+          <button @click="end">終わり</button>
       </span>
       <span v-else-if="userKlass == '占い師'">
         あなたは占い師です．占えェ．<br/>
@@ -16,11 +16,11 @@
       </span>
       <span v-else-if="userKlass == '吊人'">
         あなたは吊人です．◯ねぇ．<br/>
-        <button>終わり</button>
+        <button @click="end">終わり</button>
       </span>
       <span v-else-if="userKlass == '狂人'">
         あなたは狂人です．狂えェ．<br/>
-        <button>終わり</button>
+        <button @click="end">終わり</button>
       </span>
       <span v-else-if="userKlass == '人狼'">
         あなたは人狼です．殺せェ．<br/>
@@ -94,6 +94,11 @@
         }else if (this.userKlass == '人狼') {
           socket.emit('/ws/v1/game/request_jinro', {userSlug: this.userSlug, roomSlug: this.roomSlug})
         }
+      },
+      end () {
+        const socket = this.$store.getters['socket/socket']
+        socket.emit('/ws/v1/game/request_night_end', {userSlug: this.userSlug, roomSlug: this.roomSlug})
+        this.$store.commit('user/phase', 'NightEnd')
       }
     }
   }
