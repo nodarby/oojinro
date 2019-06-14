@@ -149,7 +149,8 @@ app.post('/api/v1/room/enter', function(req, res){
           io.to(player.socketSlug).emit("/ws/v1/room/entered",{
             users: players,
             roomSlug: newRoom.slug,
-            classes: newRoom.classes
+            classes: newRoom.classes,
+            phase: player.phase
           })
         }
       }
@@ -157,10 +158,12 @@ app.post('/api/v1/room/enter', function(req, res){
       //リロードの場合、元の部屋の情報を与える
       const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
       console.log("ほかのひと探したよ2",players)
+      let man = await Player.equalTo("slug",req.body.userSlug).fetch()
       res.json({
         users: players,
         roomSlug: newRoom.slug,
-        classes: newRoom.classes
+        classes: newRoom.classes,
+        phase: man.phase
       })
 
       //部屋が存在しない場合エラーを返す
@@ -265,10 +268,6 @@ io.on('connection',function(socket){
         }
       }
 
-
-      console.log("役職格納",items)
-
-
       //ループして役職分配
       let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
       for(let player of players){
@@ -281,6 +280,7 @@ io.on('connection',function(socket){
       console.log("場のカード",items)
       let room = await Room.equalTo("slug",change.roomSlug).fetch()
       room.set("field",items)
+      room.set("enableFlag","False")
       let socketresult = await room.update()
 
       //送信処理
@@ -292,6 +292,31 @@ io.on('connection',function(socket){
       }
     })()
   })
+
+  //占いの夜の行動
+  socket.on("/ws/v1/game/request_uranai",function(change){
+    console.log("占い",change);
+    (async()=>{
+
+      //占い場所が場かどうか
+      if (change.target == null){
+        let classroom = await Room.equalTo("roomSlug",change.roomSlug).fetch()
+        let player = await Player.equalTo("slug", change.userSlug).fetch()
+        console.log("送ります",player)
+
+        io.to(player.socketSlug).emit("/ws/v1/room/response_uranai",{
+          fieldClass: classroom.field
+        })
+      } else {
+        let player = await Player.equalTo("slug", change.target).fetch()
+          console.log("送ります", player)
+          io.to(player.socketSlug).emit("/ws/v1/room/response_uranai", {
+            targetClass: player.class
+          })
+      }
+    })()
+  })
+
 
 })
 
