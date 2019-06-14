@@ -388,7 +388,7 @@ io.on('connection',function(socket){
         mate.push(player)
       }
       jinro.set("target",mate)
-      let socketresult = await jinro.update()
+      socketresult = await jinro.update()
       io.to(jinro.socketSlug).emit("/ws/v1/game/response_jinro", {
         target: mate,
         phase: jinro.phase
