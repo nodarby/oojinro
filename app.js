@@ -163,7 +163,8 @@ app.post('/api/v1/room/enter', function(req, res){
         users: players,
         roomSlug: newRoom.slug,
         classes: newRoom.classes,
-        phase: man.phase
+        phase: man.phase,
+        class: man.class
       })
 
       //部屋が存在しない場合エラーを返す
@@ -194,6 +195,7 @@ app.post("/api/v1/socket/connected",function(req,res){
       res.status(500).json({})
     })
   })
+
 
 /*
 app.post("/api/v1/room/class",function(req,res){
@@ -274,6 +276,7 @@ io.on('connection',function(socket){
         var random = Math.floor(Math.random() * items.length )
         console.log( items[random] )
         player.set("class",items[random])
+        player.set("phase","night_action")
         let socketresult = await player.update()
         items.splice(random,1)
       }
@@ -299,7 +302,7 @@ io.on('connection',function(socket){
     (async()=>{
 
       //占い場所が場かどうか
-      if (change.target == null){
+      if (change.targetSlug == null){
         let classroom = await Room.equalTo("roomSlug",change.roomSlug).fetch()
         let player = await Player.equalTo("slug", change.userSlug).fetch()
         console.log("送ります",player)
@@ -308,7 +311,7 @@ io.on('connection',function(socket){
           fieldClass: classroom.field
         })
       } else {
-        let player = await Player.equalTo("slug", change.target).fetch()
+        let player = await Player.equalTo("slug", change.targetSlug).fetch()
           console.log("送ります", player)
           io.to(player.socketSlug).emit("/ws/v1/room/response_uranai", {
             targetClass: player.class
