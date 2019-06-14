@@ -470,19 +470,70 @@ io.on('connection',function(socket){
       }
       if(flag) {
         var voteResult = {}
-        let players = await Player.equalTo("slug", change.roomSlug).fetchAll()
+        let players = await Player.equalTo("roomSlug", change.roomSlug).fetchAll()
         for (let player of players) {
-          let vot = await Player.equalTo("slug",player.vote).fetch()
-          voteResult[vot].name += 1
+          if (voteResult[player.vote] == undefined) {
+            voteResult[player.vote] = 1
+          } else {
+            voteResult[player.vote] += 1
+          }
         }
         console.log(voteResult)
+        let maxSlugs = null
         let max = 0
-        for(let key in voteResult){
-          if(voteResult[key] > max){
-            let maxy = await Player.equalTo("slug",key).fetch()
-            max = i
-            maxSlug = maxy.slug
+        for (let key in voteResult) {
+          if (voteResult[key] > max) {
+            max = voteResult[key]
+            maxSlugs = [key]
+          } else if (voteResult[key] == max) {
+            maxSlugs.push(key)
           }
+        }
+
+        console.log(maxSlugs)
+        let winside = ""
+
+        var excuted = []
+        for (let excute of maxSlugs){
+          let person = await Player.equalTo("slug", excute).fetch()
+          excuted.push(person)
+        }
+
+        if(max != 1){
+          for (let exe of maxSlugs) {
+            if (winside != "吊人") {
+              let player = await Player.equalTo("slug", exe).fetch()
+              if (player.class == "吊人") {
+               winside = "吊人"
+              } else if (player.class == "人狼") {
+                winside = "市民"
+              } else {
+               if (winside != "市民") {
+                 winside = "人狼"
+               }
+             }
+            }
+          }
+        }else{
+          let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+          for(let player of players){
+            if(player.class = "人狼"){
+              winside = "人狼"
+            }
+          }
+          if(winside != "人狼"){
+            winside = "市民"
+          }
+        }
+
+
+        let winner = ""
+        if(winside == "人狼"){
+          winner = await Player.equalTo("roomSlug",change.roomSlug).or(Player.equalTo("class","人狼"),Player.equalTo("class","狂人")).fetchAll()
+        }else if(winside = "吊人"){
+          winner = await Player.equalTo("roomSlug",change.roomSlug).equalTo("class","吊人").fetchAll()
+        }else{
+          winner = await Player.equalTo("roomSlug",change.roomSlug).or(Player.equalTo("class","村人"),Player.equalTo("class","占い師"),Player.equalTo("class","怪盗")).fetchAll()
         }
 
 
@@ -490,11 +541,15 @@ io.on('connection',function(socket){
         for (let man of players) {
           man.set("phase", "GameResult")
           let socketresult = await man.update()
-          io.to(man.socketSlug).emit("/ws/v1/game/response_day_result", {
+          io.to(man.socketSlug).emit("/ws/v1/game/response_game_result", {
             phase: man.phase,
-            exected: {slug:maxy.slug,name:maxy.name,class:maxy.class}
+            exected: excuted,
+            winside: winside,
+            winner:winner,
+            player:players
           })
         }
+
       }else{
         let vot = await Player.equalTo("slug",player.vote).fetch()
         io.to(player.socketSlug).emit("/ws/v1/game/response_day_end", {
