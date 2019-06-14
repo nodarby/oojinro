@@ -16,7 +16,7 @@
       </div>
     </div>
     <div class="q-mt-md text-center">
-      <button @click="gameStart()">ゲーム開始</button>
+      <button @click="gameStart()" :disabled="roomClassesSum < roomUsers.length">ゲーム開始</button>
     </div>
   </div>
 </template>
