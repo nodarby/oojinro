@@ -359,6 +359,7 @@ io.on('connection',function(socket){
       console.log("送ります")
       io.to(kaito.socketSlug).emit("/ws/v1/game/response_kaito", {
         target: {slug:player.slug,name:player.name},
+        new_class:player.class,
         phase: kaito.phase
       })
 
