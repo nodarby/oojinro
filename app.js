@@ -344,15 +344,15 @@ io.on('connection',function(socket){
       let socketresult = await kaito.update()
       console.log("送ります")
       io.to(kaito.socketSlug).emit("/ws/v1/game/response_kaito", {
-        targetClass: kaito.class,
+        targetClass: player.class,
         phase: kaito.phase
       })
 
       let tmp = player.class
       player.set("class",kaito.class)
       kaito.set("class",tmp)
-      let socketresult = await player.update()
-      let socketresult = await kaito.update()
+      socketresult = await player.update()
+      socketresult = await kaito.update()
 
     })()
   })
