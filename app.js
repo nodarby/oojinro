@@ -437,11 +437,10 @@ io.on('connection',function(socket){
     })()
   })
 
-  //行動の終了
+  //夜の行動の終了
   socket.on("/ws/v1/game/request_night_end",function(change){
-    console.log("行動終わったって")
     (async()=>{
-
+      console.log("夜の行動終わったって")
       let player = await Player.equalTo("slug", change.userSlug).fetch()
       player.set("phase","NightEnd")
       let socketresult = await player.update()
@@ -456,15 +455,48 @@ io.on('connection',function(socket){
       if(flag) {
         console.log("送ります")
         for(let man of players){
-          man.set("phase","Day")
+          man.set("phase","DayAction")
           let socketresult = await man.update()
           io.to(man.socketSlug).emit("/ws/v1/game/response_night_end", {
             phase: man.phase
           })
         }
       }
-    })
+    })()
   })
+
+
+  //昼の行動の終了
+  socket.on("/ws/v1/game/request_day_end",function(change){
+    (async()=>{
+      console.log("昼の行動終わったって")
+      let player = await Player.equalTo("slug", change.userSlug).fetch()
+      player.set("phase","DayResult")
+      player.set("vote",change.targetSlug)
+      let socketresult = await player.update()
+
+      let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+      let flag = true
+      for(let man of players){
+        if(man.phase != "DayResult"){
+          flag = false
+        }
+      }
+      if(flag) {
+
+        //ゲーム結果画面に遷移指示
+        for(let man of players){
+          man.set("phase","DayAction")
+          let socketresult = await man.update()
+          io.to(man.socketSlug).emit("/ws/v1/game/response_day_result", {
+            phase: man.phase
+          })
+        }
+      }
+    })()
+  })
+
+
 })
 
 
