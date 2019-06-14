@@ -279,8 +279,6 @@ io.on('connection',function(socket){
       //送信処理（本人以外）
       let players = await Player.equalTo("roomSlug",change.roomSlug).notEqualTo("slug",change.userSlug).fetchAll()
       for(let player of players){
-        console.log("この人",players)
-        console.log("送ります",player)
         io.to(player.socketSlug).emit("/ws/v1/room/response_class_change",{
           classes: change.classes
         })
@@ -312,6 +310,8 @@ io.on('connection',function(socket){
         var random = Math.floor(Math.random() * items.length )
         console.log( items[random] )
         player.set("class",items[random])
+        player.set("new_class",items[random])
+        player.set("target","")
         player.set("phase","NightAction")
         let socketresult = await player.update()
         items.splice(random,1)
