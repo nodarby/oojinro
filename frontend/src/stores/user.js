@@ -5,7 +5,8 @@ const state = {
   slug: '',
   phase: null,
   klass: null,
-  others: null
+  newKlass: null,
+  target: null
 }
 export default {
   namespaced: true,
@@ -23,8 +24,11 @@ export default {
     klass: (state) => {
       return state.klass
     },
-    others: (state) => {
-      return state.others
+    newKlass: (state) => {
+      return state.newKlass
+    },
+    target: (state) => {
+      return state.target
     }
   },
   mutations: {
@@ -40,8 +44,12 @@ export default {
     klass: (state, payload) => {
       state.klass = payload
     },
-    others: (state, payload) => {
-      state.others = payload
+    newKlass: (state, payload) => {
+      state.newKlass = payload
+    },
+    target: (state, payload) => {
+      console.log(payload)
+      state.target = payload
     }
   },
   actions: {

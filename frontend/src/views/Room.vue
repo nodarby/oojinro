@@ -56,6 +56,10 @@
             that.$router.push({path: '/profile', query: {redirect_to: '/room/'+that.roomSlug}})
             return
           }
+          that.$store.commit('user/newKlass', res.new_class)
+          that.$store.commit('user/klass', res.class)
+          that.$store.commit('user/target', res.target)
+          that.$store.commit('user/phase', res.phase)
           // 画面を見せる
           that.isLoading = false
         }).catch(function(err){

@@ -3,11 +3,11 @@
     <div style="font-size: 2em;">あなたの役職は「{{ userKlass }}」です</div>
     <div>
       <span v-if="userKlass == '村人'">
-        あなたは村人です．なにもねェ．
+        あなたは村人です．なにもねェ．<br/>
           <button>終わり</button>
       </span>
       <span v-else-if="userKlass == '占い師'">
-        あなたは占い師です．占えェ．
+        あなたは占い師です．占えェ．<br/>
         <select v-model="target">
           <option value="">場（のこり）</option>
           <option v-for="user in roomUsers.filter((u)=>{return u.slug != userSlug})" :value="user">{{ user.name }}</option>
@@ -15,19 +15,19 @@
         <button @click="action()">占う</button>
       </span>
       <span v-else-if="userKlass == '吊人'">
-        あなたは吊人です．◯ねぇ．
+        あなたは吊人です．◯ねぇ．<br/>
         <button>終わり</button>
       </span>
       <span v-else-if="userKlass == '狂人'">
-        あなたは狂人です．狂えェ．
+        あなたは狂人です．狂えェ．<br/>
         <button>終わり</button>
       </span>
       <span v-else-if="userKlass == '人狼'">
-        あなたは人狼です．殺せェ．
+        あなたは人狼です．殺せェ．<br/>
         <button @click="action()">仲間を見つける</button>
       </span>
       <span v-else-if="userKlass == '怪盗'">
-        あなたは怪盗です．盗めェ．
+        あなたは怪盗です．盗めェ．<br/>
         <select v-model="target">
           <option value="">-</option>
           <option v-for="user in roomUsers.filter((u)=>{return u.slug != userSlug})" :value="user">{{ user.name }}</option>
@@ -58,16 +58,18 @@
       const that = this
       socket.on('/ws/v1/game/response_uranai', function(res){
         console.log(res)
-        that.$store.commit('user/others', res)
+        that.$store.commit('user/target', res.target)
         that.$store.commit('user/phase', 'NightResult')
       })
       socket.on('/ws/v1/game/response_kaito', function(res){
         console.log(res)
-        that.$store.commit('user/others', res)
+        that.$store.commit('user/target', res.target)
+        that.$store.commit('user/newKlass', res.new_class)
         that.$store.commit('user/phase', 'NightResult')
       })
       socket.on('/ws/v1/game/response_jinro', function(res){
-        that.$store.commit('user/others', res)
+        console.log(res)
+        that.$store.commit('user/target', res.target)
         that.$store.commit('user/phase', 'NightResult')
       })
     },
