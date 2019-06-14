@@ -181,8 +181,8 @@ app.post('/api/v1/room/enter', function(req, res){
         }
       }else{
         if(man.phase == "NightResult" || man.phase == "NightEnd"){
-          if(man.target == "field"){
-            let classroom = await Room.equalTo("slug",req.body.roomSlug).fetch()
+          if(man.target == "field") {
+            let classroom = await Room.equalTo("slug", req.body.roomSlug).fetch()
             res.json({
               users: players,
               roomSlug: newRoom.slug,
@@ -190,27 +190,7 @@ app.post('/api/v1/room/enter', function(req, res){
               phase: man.phase,
               class: man.class,
               new_class: man.new_class,
-              target: {field:true,class:classroom.field}
-            })
-          }else if(man.phase == "DayResult") {
-            let vot = await Player.equalTo("slug", player.vote).fetch()
-            res.json({
-              users: players,
-              roomSlug: newRoom.slug,
-              classes: newRoom.classes,
-              phase: man.phase,
-              class: man.class,
-              vote: {slug: vot.slug, name: vot.name}
-            })
-          }else if(man.phase == "GameResult") {
-            let classroom = await Room.equalTo("slug",req.body.roomSlug).fetch()
-            res.json({
-              users: players,
-              roomSlug: newRoom.slug,
-              classes: newRoom.classes,
-              phase: man.phase,
-              class: man.class,
-              result:classroom.result
+              target: {field: true, class: classroom.field}
             })
           }else{
             let tag = await Player.equalTo("slug",man.target).fetch()
@@ -225,6 +205,26 @@ app.post('/api/v1/room/enter', function(req, res){
 
             })
           }
+        }else if(man.phase == "DayResult") {
+          let vot = await Player.equalTo("slug", player.vote).fetch()
+          res.json({
+            users: players,
+            roomSlug: newRoom.slug,
+            classes: newRoom.classes,
+            phase: man.phase,
+            class: man.class,
+            vote: {slug: vot.slug, name: vot.name}
+          })
+        }else if(man.phase == "GameResult") {
+          let classroom = await Room.equalTo("slug",req.body.roomSlug).fetch()
+          res.json({
+            users: players,
+            roomSlug: newRoom.slug,
+            classes: newRoom.classes,
+            phase: man.phase,
+            class: man.class,
+            result:classroom.result
+          })
         }else{
           let tag = await Player.equalTo("slug",man.target).fetch()
           res.json({
@@ -552,7 +552,7 @@ io.on('connection',function(socket){
         }else if(winside == "吊人"){
           winner = await Player.equalTo("roomSlug",change.roomSlug).equalTo("new_class","吊人").fetchAll()
         }else{
-          winner = await Player.equalTo("roomSlug",change.roomSlug).or(Player.equalTo("new_class","村人"),Player.equalTo("new_class","占い師"),Player.equalTo("new_class","怪盗")).fetchAll()
+          winner = await Player.equalTo("roomSlug",change.roomSlug).or([Player.equalTo("new_class","村人"),Player.equalTo("new_class","占い師"),Player.equalTo("new_class","怪盗")]).fetchAll()
         }
 
         let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
@@ -564,11 +564,7 @@ io.on('connection',function(socket){
           man.set("phase", "GameResult")
           let socketresult = await man.update()
           io.to(man.socketSlug).emit("/ws/v1/game/response_game_result", {
-            phase: man.phase,
-            exected: excuted,
-            winside: winside,
-            winner:winner,
-            player:players
+          result:{phase: man.phase, exected: excuted, winside: winside, winner:winner, player:players}
           })
         }
 
