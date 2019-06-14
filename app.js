@@ -503,12 +503,12 @@ io.on('connection',function(socket){
         console.log(maxSlugs)
         let winside = ""
 
-        var excuted = []
+        var executed = []
         console.log(max)
         if(max != 1){
-          for (let excute of maxSlugs){
-            let person = await Player.equalTo("slug", excute).fetch()
-            excuted.push(person)
+          for (let execute of maxSlugs){
+            let person = await Player.equalTo("slug", execute).fetch()
+            executed.push(person)
           }
         }
 
@@ -556,7 +556,7 @@ io.on('connection',function(socket){
         }
 
         let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
-        classroom.set("result",{exected: excuted,winside: winside,winner:winner,player:players})
+        classroom.set("result",{executed: excuted,winside: winside,winner:winner,player:players})
         let socketresult = await classroom.update()
 
         //ゲーム結果画面に遷移指示
@@ -564,7 +564,7 @@ io.on('connection',function(socket){
           man.set("phase", "GameResult")
           let socketresult = await man.update()
           io.to(man.socketSlug).emit("/ws/v1/game/response_game_result", {
-          result:{phase: man.phase, exected: excuted, winside: winside, winner:winner, player:players}
+          result:{phase: man.phase, executed: executed, winside: winside, winner:winner, player:players}
           })
         }
 
