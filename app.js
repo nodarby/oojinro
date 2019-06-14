@@ -159,14 +159,25 @@ app.post('/api/v1/room/enter', function(req, res){
       const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
       console.log("ほかのひと探したよ2",players)
       let man = await Player.equalTo("slug",req.body.userSlug).fetch()
-      res.json({
-        users: players,
-        roomSlug: newRoom.slug,
-        classes: newRoom.classes,
-        phase: man.phase,
-        class: man.class
-      })
-
+      if(man.phase == "NightResult" || man.phase == "NightEnd"){
+        res.json({
+          users: players,
+          roomSlug: newRoom.slug,
+          classes: newRoom.classes,
+          phase: man.phase,
+          class: man.class,
+          new_class: man.new_class,
+          target: man.target
+        })
+      }else{
+        res.json({
+          users: players,
+          roomSlug: newRoom.slug,
+          classes: newRoom.classes,
+          phase: man.phase,
+          class: man.class
+        })
+      }
       //部屋が存在しない場合エラーを返す
     }else{
       res.status(500).json({})
@@ -308,6 +319,7 @@ io.on('connection',function(socket){
         let uranai = await Player.equalTo("slug", change.userSlug).fetch()
         console.log("送ります")
         uranai.set("phase","NightResult")
+        uranai.set("target","field")
         let socketresult = await uranai.update()
 
         io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai",{
@@ -320,6 +332,7 @@ io.on('connection',function(socket){
         let uranai = await Player.equalTo("slug", change.userSlug).fetch()
         console.log("送ります")
         uranai.set("phase","NightResult")
+        uranai.set("target",player.slug)
         let socketresult = await uranai.update()
 
         io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai", {
@@ -349,8 +362,9 @@ io.on('connection',function(socket){
       })
 
       let tmp = player.class
-      player.set("class",kaito.class)
-      kaito.set("class",tmp)
+      player.set("new_class",kaito.class)
+      kaito.set("new_class",tmp)
+      kaito.set("target",player.slug)
       socketresult = await player.update()
       socketresult = await kaito.update()
 
