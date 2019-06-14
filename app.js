@@ -159,26 +159,50 @@ app.post('/api/v1/room/enter', function(req, res){
       const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
       console.log("ほかのひと探したよ2",players)
       let man = await Player.equalTo("slug",req.body.userSlug).fetch()
-      let tag = await Player.equalTo("slug",man.target).fetch()
-      if(man.phase == "NightResult" || man.phase == "NightEnd"){
-        res.json({
-          users: players,
-          roomSlug: newRoom.slug,
-          classes: newRoom.classes,
-          phase: man.phase,
-          class: man.class,
-          new_class: man.new_class,
-          target: {slug:tag.slug,name:tag.name}
-        })
+      if(man.class == "人狼"){
+        if(man.phase == "NightResult" || man.phase == "NightEnd"){
+          res.json({
+            users: players,
+            roomSlug: newRoom.slug,
+            classes: newRoom.classes,
+            phase: man.phase,
+            class: man.class,
+            new_class: man.new_class,
+            target: man.target
+          })
+        }else{
+          res.json({
+            users: players,
+            roomSlug: newRoom.slug,
+            classes: newRoom.classes,
+            phase: man.phase,
+            class: man.class
+          })
+        }
       }else{
-        res.json({
-          users: players,
-          roomSlug: newRoom.slug,
-          classes: newRoom.classes,
-          phase: man.phase,
-          class: man.class
-        })
+        let tag = await Player.equalTo("slug",man.target).fetch()
+        if(man.phase == "NightResult" || man.phase == "NightEnd"){
+          res.json({
+            users: players,
+            roomSlug: newRoom.slug,
+            classes: newRoom.classes,
+            phase: man.phase,
+            class: man.class,
+            new_class: man.new_class,
+            target: {slug:tag.slug,name:tag.name}
+
+          })
+        }else{
+          res.json({
+            users: players,
+            roomSlug: newRoom.slug,
+            classes: newRoom.classes,
+            phase: man.phase,
+            class: man.class
+          })
+        }
       }
+
       //部屋が存在しない場合エラーを返す
     }else{
       res.status(500).json({})
@@ -337,7 +361,7 @@ io.on('connection',function(socket){
         let socketresult = await uranai.update()
 
         io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai", {
-          target: {slug:player.slug,name:player.name},
+          target: {slug:player.slug,name:player.name,class:player.class},
           phase: uranai.phase
         })
 
