@@ -362,7 +362,7 @@ io.on('connection',function(socket){
         let socketresult = await uranai.update()
 
         io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai",{
-          fieldClass: classroom.field,
+          target: {field: true, class: classroom.field},
           phase:uranai.phase
         })
 

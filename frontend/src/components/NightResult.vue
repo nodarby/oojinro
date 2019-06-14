@@ -1,27 +1,26 @@
 <template>
   <div style="padding: 16px;">
-    <div style="font-size: 2em;">あなたの役職は「{{ userKlass }}」です</div>
     <div>
-      <span v-if="userKlass == '占い師'">
-        あなたは占い師です．占ったゾォ<br/>
+      <span v-if="userKlass == '占い師'" style="font-size: 2em;">
         <span v-if="userTarget.field">
           場を占ったら{{ userTarget.class }}でした<br/>
         </span>
         <span v-else>
-          {{ userTarget.name }}は{{ userTarget.class }}でした<br/>
+          {{ userTarget.name }}は「{{ userTarget.class }}」でした<br/>
         </span>
-          <button>終わり</button>
       </span>
-      <span v-else-if="userKlass == '人狼'">
-        あなたは人狼です．仲間を見つけたゾォ<br/>
-        <span v-for="t in userTarget">{{ t.name }}</span><br/>
-        <button>終わり</button>
+      <span v-else-if="userKlass == '人狼'" style="font-size: 2em;">
+        <span v-if="userTarget.length > 0">
+          <span v-for="t in userTarget">{{ t.name }}</span>が仲間です<br/>
+        </span>
+        <span v-else>
+          仲間はいないようだ…
+        </span>
       </span>
-      <span v-else-if="userKlass == '怪盗'">
-        あなたは怪盗です．盗んだゾォ<br/>
-        {{ userTarget.name }}から{{ userNewKlass }}を奪いました！<br/>
-        <button>終わり</button>
+      <span v-else-if="userKlass == '怪盗'" style="font-size: 2em;">
+        {{ userTarget.name }}から「{{ userNewKlass }}」を奪いました！<br/>
       </span>
+      <button>終わり</button>
     </div>
   </div>
 </template>
