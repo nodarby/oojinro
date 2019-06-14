@@ -305,12 +305,14 @@ io.on('connection',function(socket){
       if (change.targetSlug == ""){
         console.log("場だね")
         let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
-        let player = await Player.equalTo("slug", change.userSlug).fetch()
+        let uranai = await Player.equalTo("slug", change.userSlug).fetch()
         console.log("送ります")
 
-        io.to(player.socketSlug).emit("/ws/v1/game/response_uranai",{
+        io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai",{
           fieldClass: classroom.field
         })
+        uranai.set("phase","NightResult")
+        let socketresult = await uranai.update()
       } else {
         let player = await Player.equalTo("slug", change.targetSlug).fetch()
         let uranai = await Player.equalTo("slug", change.userSlug).fetch()
@@ -318,11 +320,62 @@ io.on('connection',function(socket){
         io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai", {
           targetClass: player.class
         })
+        uranai.set("phase","NightResult")
+        let socketresult = await uranai.update()
       }
     })()
   })
 
 
+  //怪盗の夜の行動
+  socket.on("/ws/v1/game/request_uranai",function(change){
+    console.log("怪盗",change);
+    (async()=>{
+
+      let player = await Player.equalTo("slug", change.targetSlug).fetch()
+      let uranai = await Player.equalTo("slug", change.userSlug).fetch()
+      console.log("送ります")
+      io.to(uranai.socketSlug).emit("/ws/v1/game/response_uranai", {
+        targetClass: player.class
+      })
+    })()
+  })
+
+
+  socket.on("/ws/v1/game/request_night_end",function(change){
+    console.log("行動終わったって")
+    (async()=>{
+
+      let player = await Player.equalTo("slug", change.userSlug).fetch()
+      player.set("phase","NightEnd")
+      let socketresult = await player.update()
+
+      let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+      let flag = true
+      for(let man of players){
+        if(man.phase != "NightEnd"){
+          flag = false
+        }
+      }
+      if(flag) {
+        console.log("送ります")
+        for(let man of players){
+          man.set("phase","Day")
+          let socketresult = await man.update()
+          io.to(man.socketSlug).emit("/ws/v1/game/response_night_end", {
+            phase: man.phase
+          })
+        }
+
+      } else{
+        console.log("送ります")
+        io.to(player.socketSlug).emit("/ws/v1/game/response_night_end", {
+          phase: player.phase
+        })
+      }
+
+    })
+  })
 })
 
 
