@@ -6,10 +6,10 @@
     </div>
     <div>
       <component :is="userPhase"></component>
-      <div>{{ userName }}({{ userSlug }})</div>
+      <div>{{ userName }}</div>
       <div>メンバー</div>
       <ul>
-        <li v-for="roomUser in roomUsers">{{roomUser.name}}({{roomUser.slug}})</li>
+        <li v-for="roomUser in roomUsers">{{roomUser.name}}</li>
       </ul>
       <div>役職</div>
       <ul>
@@ -28,6 +28,7 @@
   import NightEnd from '../components/NightEnd'
   import DayAction from '../components/DayAction'
   import DayResult from '../components/DayResult'
+  import GameResult from '../components/GameResult'
 
   export default {
     data () {
@@ -41,7 +42,8 @@
       NightResult,
       NightEnd,
       DayAction,
-      DayResult
+      DayResult,
+      GameResult
     },
     computed: {
       roomSlug: function () {return this.$router.history.current.params.roomSlug},
@@ -66,6 +68,7 @@
           that.$store.commit('user/klass', res.class)
           that.$store.commit('user/target', res.target)
           that.$store.commit('user/phase', res.phase)
+          that.$store.commit('room/result', res.result)
 
           const socket = that.$store.getters['socket/socket']
           socket.on('/ws/v1/game/response_night_end', function(res){
@@ -76,6 +79,7 @@
           socket.on('/ws/v1/game/response_game_result', function(res){
             console.log('昼も終わるだろう…なんどもな！')
             console.log(res)
+            that.$store.commit('room/result', res.result)
             that.$store.commit('user/phase', 'GameResult')
           })
 

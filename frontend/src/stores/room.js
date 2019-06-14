@@ -20,6 +20,9 @@ export default {
     },
     phase: (state) => {
       return state.phase
+    },
+    result: (state) => {
+      return state.result
     }
   },
   mutations: {
@@ -34,6 +37,9 @@ export default {
     },
     phase: (state, payload) => {
       state.phase = payload
+    },
+    result: (state, payload) => {
+      state.result = payload
     }
   },
   actions: {
