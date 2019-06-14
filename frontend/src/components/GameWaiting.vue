@@ -1,11 +1,23 @@
 <template>
-  <div>
-    <h2>GameWaiting画面</h2>
-    <h3>合計: {{ roomClassesSum }}({{roomClassesSum - roomUsers.length}})</h3>
-    <ul>
-      <li v-for="(value, klass) in roomClasses">{{klass}}×{{ value || 0 }}<button @click="plus(klass)">+</button><button @click="minus(klass)">-</button></li>
-    </ul>
-    <button @click="gameStart()">ゲーム開始</button>
+  <div style="padding: 16px;">
+    <div>
+      <div style="font-size: 1.5em;">参加プレイヤー一覧</div>
+      <div v-for="roomUser in roomUsers" :key="roomUser.slug">
+        <div>{{ roomUser.name }}</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size: 1.5em;">役職一覧</div>
+      <div v-for="(value, klass) in roomClasses" :key="klass">
+        <div>{{ klass }}<button color="blue" @click="plus(klass)">+</button><span style="width: 50px;text-align: center;display: inline-block;">{{ value || 0 }}</span><button @click="minus(klass)">-</button></div>
+      </div>
+      <div>
+        <div>合計{{ roomClassesSum }}/({{roomClassesSum - roomUsers.length}})</div>
+      </div>
+    </div>
+    <div class="q-mt-md text-center">
+      <button @click="gameStart()">ゲーム開始</button>
+    </div>
   </div>
 </template>
 <script>

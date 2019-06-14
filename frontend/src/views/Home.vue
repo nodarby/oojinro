@@ -2,6 +2,12 @@
   <div class="home">
     <h1>一夜人狼</h1>
     <div>
+      <router-link :to="'/room/'+roomSlug">部屋に入る: ルーム{{ roomSlug }}</router-link>
+    </div>
+    <div>
+      <router-link to="/profile">プロフィールの編集</router-link>
+    </div>
+    <div>
       <input type="button" value="部屋を作る" @click="createRoom()">
     </div>
 
@@ -17,6 +23,9 @@
       return {
         roomSlugTemp: ''
       }
+    },
+    computed: {
+      roomSlug: function () {return this.$store.getters['room/slug']}
     },
     methods: {
       createRoom: function () {

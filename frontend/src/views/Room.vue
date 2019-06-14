@@ -1,16 +1,23 @@
 <template>
   <div v-if="!isLoading">
-    <h1>ルーム{{ roomSlug }}</h1>
-    <h3>{{ userName }}({{ userSlug }})</h3>
-    <h2>メンバー</h2>
-    <ul>
-      <li v-for="roomUser in roomUsers">{{roomUser.name}}({{roomUser.slug}})</li>
-    </ul>
-    <h2>役職</h2>
-    <ul>
-      <li v-for="(value, klass) in roomClasses">{{klass}}×{{ value || 0 }}</li>
-    </ul>
-    <GameWaiting></GameWaiting>
+    <div>
+      <div>ルーム{{ roomSlug }}</div>
+    </div>
+    <div>
+      {{ userPhase }}
+      <GameWaiting></GameWaiting>
+      <!--
+      <div>{{ userName }}({{ userSlug }})</div>
+      <div>メンバー</div>
+      <ul>
+        <li v-for="roomUser in roomUsers">{{roomUser.name}}({{roomUser.slug}})</li>
+      </ul>
+      <div>役職</div>
+      <ul>
+        <li v-for="(value, klass) in roomClasses">{{klass}}×{{ value || 0 }}</li>
+      </ul>
+      //-->
+    </div>
   </div>
   <div v-else>
     入室中...
@@ -33,7 +40,8 @@
       roomUsers: function () {return this.$store.getters['room/users']},
       roomClasses: function () {return this.$store.getters['room/classes']},
       userName: function () {return this.$store.getters['user/name']},
-      userSlug: function () {return this.$store.getters['user/slug']}
+      userSlug: function () {return this.$store.getters['user/slug']},
+      userPhase: function () { return this.$store.getters['users/phase'] }
     },
     created: function() {
       // 入室処理

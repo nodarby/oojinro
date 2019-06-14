@@ -2,7 +2,8 @@ import axios from 'axios'
 
 const state = {
   name: '',
-  slug: ''
+  slug: '',
+  phase: null
 }
 export default {
   namespaced: true,
@@ -13,6 +14,9 @@ export default {
     },
     slug: (state) => {
       return state.slug
+    },
+    phase: (state) => {
+      return state.phase
     }
   },
   mutations: {
@@ -21,6 +25,9 @@ export default {
     },
     slug: (state, payload) => {
       state.slug = payload
+    },
+    phase: (state, payload) => {
+      state.phase = payload
     }
   },
   actions: {
