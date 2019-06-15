@@ -5,7 +5,9 @@
       <div v-for="roomUser in roomUsers" :key="roomUser.slug">
         <div>{{ roomUser.name || '[名無しさん]' }}</div>
       </div>
-      名無しさんが表示されている場合は，<a href="javascript: location.reload()">ページの再読み込み</a>を行なってください．
+      <div style="margin: 1em 0;">
+        名無しさんが表示されている場合は，<a href="javascript: location.reload()">ページの再読み込み</a>を行なってください．
+      </div>
     </div>
     <div>
       <div style="font-size: 1.5em;">役職一覧</div>
