@@ -1,6 +1,7 @@
 <template>
   <div style="padding: 16px;">
     <div>
+      <div style="font-size: 2em">他の人の行動を待っています．</div>
       通信待機中．<br/>
       しばらくお待ちください．
     </div>

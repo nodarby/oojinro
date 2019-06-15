@@ -1,10 +1,11 @@
 <template>
   <div style="padding: 16px;">
     <div>
-      <div style="font-size: 1.5em;">参加プレイヤー一覧</div>
+      <div style="font-size: 1.5em;">参加プレイヤー一覧({{ roomUsers.length }}人)</div>
       <div v-for="roomUser in roomUsers" :key="roomUser.slug">
-        <div>{{ roomUser.name }}</div>
+        <div>{{ roomUser.name || '[名無しさん]' }}</div>
       </div>
+      名無しさんが表示されている場合は，<a href="javascript: location.reload()">ページの再読み込み</a>を行なってください．
     </div>
     <div>
       <div style="font-size: 1.5em;">役職一覧</div>

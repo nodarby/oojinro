@@ -333,7 +333,8 @@ io.on('connection',function(socket){
       let socketresult = await room.update()
 
       //送信処理
-      for(let player of players){
+      let changer = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+      for(let player of changer){
         console.log("送ります",player)
         io.to(player.socketSlug).emit("/ws/v1/game/response_start",{
           class: player.class

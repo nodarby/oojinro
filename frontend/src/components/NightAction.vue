@@ -3,24 +3,25 @@
     <div style="font-size: 2em;">あなたの役職は「{{ userKlass }}」です</div>
     <div>
       <span v-if="userKlass == '村人'">
-        あなたは村人です．なにもねェ．<br/>
-          <button @click="end">終わり</button>
+        あなたは村人です．<br/>
+        <button @click="end">朝を迎える</button>
       </span>
       <span v-else-if="userKlass == '占い師'">
         あなたは占い師です．占えェ．<br/>
-        <select v-model="target">
-          <option value="">場（のこり）</option>
+        占う人:<select v-model="target" style="display: inline">
+          <option value="">墓場(使われていない役職を占う)</option>
+        墓地が選択されている場合は，使用されていない役職が選択されます．
           <option v-for="user in roomUsers.filter((u)=>{return u.slug != userSlug})" :value="user">{{ user.name }}</option>
-        </select>
-        <button @click="action()">占う</button>
+        </select><br/>
+        <button @click="action()">項目を占う</button>
       </span>
       <span v-else-if="userKlass == '吊人'">
         あなたは吊人です．◯ねぇ．<br/>
-        <button @click="end">終わり</button>
+        <button @click="end">朝を迎える</button>
       </span>
       <span v-else-if="userKlass == '狂人'">
         あなたは狂人です．狂えェ．<br/>
-        <button @click="end">終わり</button>
+        <button @click="end">朝を迎える</button>
       </span>
       <span v-else-if="userKlass == '人狼'">
         あなたは人狼です．殺せェ．<br/>
@@ -32,7 +33,7 @@
           <option value="">-</option>
           <option v-for="user in roomUsers.filter((u)=>{return u.slug != userSlug})" :value="user">{{ user.name }}</option>
         </select>
-        <button @click="action()" :disabled="!target">盗む</button>
+        <button @click="action()" :disabled="!target">役職を盗む</button>
       </span>
     </div>
   </div>

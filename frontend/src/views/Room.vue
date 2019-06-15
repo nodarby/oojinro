@@ -15,6 +15,7 @@
       <ul>
         <li v-for="(value, klass) in roomClasses">{{klass}}×{{ value || 0 }}</li>
       </ul>
+      <router-link to="/">トップページにもどる</router-link>
     </div>
   </div>
   <div v-else>

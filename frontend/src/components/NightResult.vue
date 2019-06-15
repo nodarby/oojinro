@@ -3,7 +3,7 @@
     <div>
       <span v-if="userKlass == '占い師'" style="font-size: 2em;">
         <span v-if="userTarget.field">
-          場を占ったら{{ userTarget.class }}でした<br/>
+          墓場(使用されていない役職)を占ったら{{ userTarget.class }}でした<br/>
         </span>
         <span v-else>
           {{ userTarget.name }}は「{{ userTarget.class }}」でした<br/>
@@ -20,7 +20,7 @@
       <span v-else-if="userKlass == '怪盗'" style="font-size: 2em;">
         {{ userTarget.name }}から「{{ userNewKlass }}」を奪いました！<br/>
       </span>
-      <button @click="end">終わり</button>
+      <button @click="end">朝を迎える</button>
     </div>
   </div>
 </template>
