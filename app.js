@@ -136,14 +136,19 @@ app.post('/api/v1/room/enter', function(req, res){
         player.set("phase","GameWaiting")
         player = await player.update()
 
-        //同じ部屋の人数分村人を増やす
+
+        /*同じ部屋の人数分村人を増やす
         const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
         console.log("ほかのひと探したよ",players)
         newRoom.classes["村人"] = players.length
         newRoom = await newRoom.update()
         console.log("村人足したよ",newRoom)
 
+         */
+
+
         //全員に変化を伝える
+        const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
         for(let player of players){
           console.log("フォー",player)
           io.to(player.socketSlug).emit("/ws/v1/room/entered",{
@@ -399,10 +404,10 @@ io.on('connection',function(socket){
       })
 
       let tmp = player.class
-      player.set("new_class",kaito.class)
+      player.set("new_class","怪盗")
+      socketresult = await player.update()
       kaito.set("new_class",tmp)
       kaito.set("target",player.slug)
-      socketresult = await player.update()
       socketresult = await kaito.update()
 
     })()
@@ -533,7 +538,6 @@ io.on('connection',function(socket){
             }
           }
         }else{
-          let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
           for(let player of players){
             if(player.new_class == "人狼"){
               winside = "人狼"
@@ -549,7 +553,7 @@ io.on('connection',function(socket){
 
         let winner = ""
         if(winside == "人狼"){
-          winner = await Player.equalTo("roomSlug",change.roomSlug).or(Player.equalTo("new_class","人狼"),Player.equalTo("new_class","狂人")).fetchAll()
+          winner = await Player.equalTo("roomSlug",change.roomSlug).or([Player.equalTo("new_class","人狼"),Player.equalTo("new_class","狂人")]).fetchAll()
         }else if(winside == "吊人"){
           winner = await Player.equalTo("roomSlug",change.roomSlug).equalTo("new_class","吊人").fetchAll()
         }else{
