@@ -3,7 +3,12 @@
     <div>
       <span v-if="userKlass == '占い師'" style="font-size: 2em;">
         <span v-if="userTarget.field">
-          墓場(使用されていない役職)を占ったら{{ userTarget.class }}でした<br/>
+          <span v-if="userTarget.class.length > 0">
+            墓場(使用されていない役職)を占ったら{{ userTarget.class }}でした<br/>
+          </span>
+          <span v-else>
+            墓場に役職が登録されていませんでした．<br/>
+          </span>
         </span>
         <span v-else>
           {{ userTarget.name }}は「{{ userTarget.class }}」でした<br/>
