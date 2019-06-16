@@ -520,23 +520,35 @@ io.on('connection',function(socket){
 
 
         if(max != 1){
-          for (let exe of maxSlugs) {
-            if (winside != "吊人") {
-              let player = await Player.equalTo("slug", exe).fetch()
-              if (player.new_class == "吊人") {
-                winside = "吊人"
-                console.log("吊人")
-              } else if (player.new_class == "人狼") {
-                winside = "市民"
-                console.log("市民")
-              } else {
-               if (winside != "市民") {
-                 winside = "人狼"
-                 console.log("人狼")
-               }
+          let heiwa = 0
+          for(let peace of players){
+            if(peace.class != "人狼"){
+              heiwa += 1
+            }
+          }
+
+          if(heiwa == players.length){
+            winside = "なし"
+          }else{
+            for (let exe of maxSlugs) {
+              if (winside != "吊人") {
+                let player = await Player.equalTo("slug", exe).fetch()
+                if (player.new_class == "吊人") {
+                  winside = "吊人"
+                  console.log("吊人")
+                } else if (player.new_class == "人狼") {
+                  winside = "市民"
+                  console.log("市民")
+                } else {
+                  if (winside != "市民") {
+                    winside = "人狼"
+                    console.log("人狼")
+                  }
+                }
               }
             }
           }
+
         }else{
           for(let player of players){
             if(player.new_class == "人狼"){
@@ -556,6 +568,8 @@ io.on('connection',function(socket){
           winner = await Player.equalTo("roomSlug",change.roomSlug).or([Player.equalTo("new_class","人狼"),Player.equalTo("new_class","狂人")]).fetchAll()
         }else if(winside == "吊人"){
           winner = await Player.equalTo("roomSlug",change.roomSlug).equalTo("new_class","吊人").fetchAll()
+        }else if(winside == "なし"){
+          winner = ""
         }else{
           winner = await Player.equalTo("roomSlug",change.roomSlug).or([Player.equalTo("new_class","村人"),Player.equalTo("new_class","占い師"),Player.equalTo("new_class","怪盗")]).fetchAll()
         }
