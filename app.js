@@ -80,6 +80,17 @@ app.post('/api/v1/profile', function(req, res){
         userSlug: result.slug,
         userName: result.name
       })
+      if(result.roomSlug != ""){
+        Player.equalTo('roomSlug', result.roomSlug).fetchAll().then(function(players){
+          for(let player of players){
+            io.to(player.socketSlug).emit("/ws/v1/room/name_change",{
+              changedUserSlug: result.slug,
+              changedUsername: result.name
+            })
+
+          }
+        })
+      }
     }else{
       // 変更できなかったらエラー
       res.status(400).json({})
@@ -579,7 +590,8 @@ io.on('connection',function(socket){
         let socketresult = await classroom.update()
 
         //ゲーム結果画面に遷移指示
-        for (let man of players) {
+        let result_players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+        for (let man of result_players) {
           man.set("phase", "GameResult")
           let socketresult = await man.update()
           io.to(man.socketSlug).emit("/ws/v1/game/response_game_result", {
