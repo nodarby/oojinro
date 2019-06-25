@@ -2,3 +2,10 @@ Thumbs.db
 .DS_Store
 
 .idea/
+
+
+.vagrant/
+
+node_modules/
+
+.env
