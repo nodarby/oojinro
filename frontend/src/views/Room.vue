@@ -83,6 +83,11 @@
             that.$store.commit('room/result', res.result)
             that.$store.commit('user/phase', 'GameResult')
           })
+          socket.on('/ws/v1/room/name_change', function(res){
+            console.log("ユーザー情報が変わりました")
+            console.log(res.users)
+            that.$store.commit('room/users', res.users)
+          })
 
           // 画面を見せる
           that.isLoading = false
