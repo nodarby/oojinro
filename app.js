@@ -240,7 +240,6 @@ app.post('/api/v1/room/enter', function(req, res){
             result:classroom.result
           })
         }else{
-          let tag = await Player.equalTo("slug",man.target).fetch()
           res.json({
             users: players,
             roomSlug: newRoom.slug,
@@ -628,20 +627,29 @@ io.on('connection',function(socket){
   })
 
 
-  //役職変更処理
-  socket.on("/ws/v1/room/request_class_change",function(change){
-    console.log("発火したぞ",change);
+  //もう一度ゲームを始める処理
+  socket.on("/ws/v1/game/request_new_game",function(change){
+    console.log("もう一度ゲームを始めよう",change);
     (async()=>{
 
       let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
       classroom.set("classes",change.classes)
       let result = await classroom.update()
 
-      //送信処理（本人以外）
-      let players = await Player.equalTo("roomSlug",change.roomSlug).notEqualTo("slug",change.userSlug).fetchAll()
+      //送信処理（全員）
+      let finisher = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
+      for(let player of finisher){
+        player.set("phase","GameWaiting")
+        result = await player.update()
+      }
+
+      let players = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
       for(let player of players){
-        io.to(player.socketSlug).emit("/ws/v1/room/response_class_change",{
-          classes: change.classes
+        io.to(player.socketSlug).emit("/ws/v1/game/response_new_game",{
+          users: players,
+          roomSlug: classroom.slug,
+          classes: classroom.classes,
+          phase: "GameWaiting",
         })
       }
     })()
