@@ -73,7 +73,7 @@ export default {
           context.commit('users', res.data.users)
           context.commit('classes', res.data.classes)
           context.commit('user/phase', res.data.phase, {root: true})
-          // context.commit('user/klass', null, {root: true})
+          context.commit('user/klass', null, {root: true})
           resolve(res.data)
         }).catch(function(err){
           console.log('Failed Enter Room')

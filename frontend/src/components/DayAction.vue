@@ -44,7 +44,8 @@
     },
     methods: {
       action () {
-        if (confirm('「'+this.target.name+'」に投票します．よろしいですか？') != false){
+        // if (confirm('「'+this.target.name+'」に投票します．よろしいですか？') != false){
+        if (true) {
           const socket = this.$store.getters['socket/socket']
           socket.emit('/ws/v1/game/request_day_end', {userSlug: this.userSlug, roomSlug: this.roomSlug, targetSlug: this.target.slug})
         }

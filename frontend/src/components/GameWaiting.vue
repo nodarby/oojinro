@@ -2,12 +2,9 @@
   <div style="padding: 16px;">
     <div>
       <div style="font-size: 1.5em;">参加プレイヤー一覧({{ roomUsers.length }}人)</div>
-      <div v-for="roomUser in roomUsers" :key="roomUser.slug">
-        <div>{{ roomUser.name || '[名無しさん]' }}</div>
-      </div>
-      <div style="margin: 1em 0;">
-        名無しさんが表示されている場合は，<a href="javascript: location.reload()">ページの再読み込み</a>を行なってください．
-      </div>
+      <ul v-for="roomUser in roomUsers" :key="roomUser.slug">
+        <li>{{ roomUser.name || '-' }}</li>
+      </ul>
     </div>
     <div>
       <div style="font-size: 1.5em;">役職一覧</div>
@@ -56,7 +53,7 @@
         that.roomClasses = res.classes
       })
       socket.on('/ws/v1/game/response_start', function(res){
-        alert('ゲーム開始しました！^^')
+        // alert('ゲーム開始しました！^^')
         that.$store.commit('user/phase', 'NightAction')
         that.$store.commit('user/klass', res.class)
       })

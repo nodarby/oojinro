@@ -16,6 +16,9 @@
         <span v-else>{{p.class}}</span>
       </div>
     </div>
+    <div>
+      <a href="javascript: void(0)" v-on:click="retry()">もう一度遊ぶ</a>
+    </div>
   </div>
 </template>
 <script>
@@ -28,6 +31,14 @@
       userPhase: function () { return this.$store.getters['user/phase'] },
       userKlass: function () { return this.$store.getters['user/klass'] },
       roomResult: function () { return this.$store.getters['room/result'] }
+    },
+    methods: {
+      retry: function () {
+        console.log("もう一度あそぶどーん")
+
+        const socket = this.$store.getters['socket/socket']
+        socket.emit('/ws/v1/game/request_new_game', {userSlug: this.userSlug, roomSlug: this.roomSlug})
+      }
     }
   }
 </script>
