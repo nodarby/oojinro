@@ -84,8 +84,7 @@ app.post('/api/v1/profile', function(req, res){
         Player.equalTo('roomSlug', result.roomSlug).fetchAll().then(function(players){
           for(let player of players){
             io.to(player.socketSlug).emit("/ws/v1/room/name_change",{
-              changedUserSlug: result.slug,
-              changedUsername: result.name
+              users:players
             })
 
           }
@@ -628,6 +627,27 @@ io.on('connection',function(socket){
       console.log(err)
     })
   })
+
+
+  //役職変更処理
+  socket.on("/ws/v1/room/request_class_change",function(change){
+    console.log("発火したぞ",change);
+    (async()=>{
+
+      let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
+      classroom.set("classes",change.classes)
+      let result = await classroom.update()
+
+      //送信処理（本人以外）
+      let players = await Player.equalTo("roomSlug",change.roomSlug).notEqualTo("slug",change.userSlug).fetchAll()
+      for(let player of players){
+        io.to(player.socketSlug).emit("/ws/v1/room/response_class_change",{
+          classes: change.classes
+        })
+      }
+    })()
+  })
+
 
 })
 
