@@ -68,37 +68,36 @@ app.post('/api/v1/signup', function(req, res){
 })
 
 // 名前を変える
-app.post('/api/v1/profile', function(req, res){
+app.post('/api/v1/profile', async function (req, res) {
   console.log(req.body)
-  Player.equalTo('slug', req.body.userSlug).fetch().then(function(result){
-    if(0!==Object.keys(result).length) {
+  await Player.equalTo('slug', req.body.userSlug).fetch().then(async function (result) {
+    if (0 !== Object.keys(result).length) {
       // 名前を変えることができたら情報を返す
-      result.set("name",req.body.userName)
-      result.update()
+      result.set("name", req.body.userName)
+      await result.update()
       console.log(result)
       res.json({
         userSlug: result.slug,
-        userName: result.name
+        userName: req.body.userName
       })
-      if(result.roomSlug != ""){
-        Player.equalTo('roomSlug', result.roomSlug).fetchAll().then(function(players){
-          for(let player of players){
-            io.to(player.socketSlug).emit("/ws/v1/room/name_change",{
-              users:players
+      if (result.roomSlug != "") {
+        await Player.equalTo('roomSlug', result.roomSlug).fetchAll().then(function (players) {
+          for (let player of players) {
+            io.to(player.socketSlug).emit("/ws/v1/room/name_change", {
+              users: players
             })
 
           }
         })
       }
-    }else{
+    } else {
       // 変更できなかったらエラー
       res.status(400).json({})
     }
-  }).catch(function(error){
+  }).catch(function (error) {
     console.log(error)
     // 取ってこれなかったらエラーを返す
-    res.status(500).json({
-    })
+    res.status(500).json({})
   })
 })
 
