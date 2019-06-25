@@ -633,8 +633,6 @@ io.on('connection',function(socket){
     (async()=>{
 
       let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
-      classroom.set("classes",change.classes)
-      let result = await classroom.update()
 
       //送信処理（全員）
       let finisher = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
