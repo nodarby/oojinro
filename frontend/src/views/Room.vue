@@ -2,7 +2,7 @@
   <div v-if="!isLoading">
     <div>
       <div>ルーム{{ roomSlug }}</div>
-      <div>{{ userName }}({{ userKlass }})[{{ userPhase }}]</div>
+      <div>{{ userName }}<span v-if="userKlass">({{ userKlass }})</span></div>
     </div>
     <div>
       <component :is="userPhase"></component>
@@ -89,11 +89,22 @@
             that.$store.commit('room/users', res.users)
           })
 
+          socket.on('/ws/v1/game/response_new_game', function(res){
+            console.log("新しいゲームが始まりました！")
+            console.log(res)
+
+            that.$store.commit('room/slug', res.roomSlug)
+            that.$store.commit('room/users', res.users)
+            that.$store.commit('room/classes', res.classes)
+            that.$store.commit('user/phase', res.phase, {root: true})
+            that.$store.commit('user/klass', null, {root: true})
+          })
+
           // 画面を見せる
           that.isLoading = false
         }).catch(function(err){
           that.$router.push({path: '/'})
-          alert('部屋が見つかりませんでした')
+          alert('部屋が見つからない．またはゲームをプレイ中です．')
         })
     }
   }
