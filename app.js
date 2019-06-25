@@ -113,6 +113,7 @@ app.post('/api/v1/room/create', function(req, res){
           "狂人":0,
           "吊人":0,
         })
+    room.set("flag","True")
     room.save().then(function(result){
       console.log(result)
       res.json({
@@ -130,83 +131,66 @@ app.post('/api/v1/room/enter', function(req, res){
     //部屋がすでに存在するか判定
     let newRoom = await Room.equalTo("slug",req.body.roomSlug).fetch()
 
-    //もし部屋があれば行う
-    if(0 !== Object.keys(newRoom).length){
-      let player = await Player.equalTo("slug",req.body.userSlug).fetch()
-      console.log("player探したよ")
-      console.log(player)
-      const oldRoomSlug = player.roomSlug
+      //もし部屋があれば行う
+      if(0 !== Object.keys(newRoom).length){
+        let player = await Player.equalTo("slug",req.body.userSlug).fetch()
+        console.log("player探したよ")
+        console.log(player)
+        const oldRoomSlug = player.roomSlug
 
 
 
-      //リロードか新たな参加かを判断
-      if(oldRoomSlug !== newRoom.slug){
-        console.log("前",oldRoomSlug)
-        console.log("後",newRoom.slug)
-        player.set("roomSlug",req.body.roomSlug)
-        player.set("phase","GameWaiting")
-        player = await player.update()
+        //リロードか新たな参加かを判断
+        if(oldRoomSlug !== newRoom.slug){
+          if(newRoom.enableFlag == "False"){
+            res.status(500).json({})
+          }
+          else{
+            console.log("前",oldRoomSlug)
+            console.log("後",newRoom.slug)
+            player.set("roomSlug",req.body.roomSlug)
+            player.set("phase","GameWaiting")
+            player = await player.update()
 
-        //元いた部屋が無人になった場合に削除
-        let join_player = await Player.equalTo("roomSlug",oldRoomSlug).fetchAll()
-        console.log()
-        if (join_player.length == 0){
-          let room = await Room.equalTo("slug", oldRoomSlug).fetch()
-          room.delete()
+            //元いた部屋が無人になった場合に削除
+            let join_player = await Player.equalTo("roomSlug",oldRoomSlug).fetchAll()
+            console.log()
+            if (join_player.length == 0){
+              let room = await Room.equalTo("slug", oldRoomSlug).fetch()
+              room.delete()
+            }
+
+
+            /*同じ部屋の人数分村人を増やす
+            const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
+            console.log("ほかのひと探したよ",players)
+            newRoom.classes["村人"] = players.length
+            newRoom = await newRoom.update()
+            console.log("村人足したよ",newRoom)
+
+             */
+
+
+            //全員に変化を伝える
+            const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
+            for(let player of players){
+              console.log("フォー",player)
+              io.to(player.socketSlug).emit("/ws/v1/room/entered",{
+                users: players,
+                roomSlug: newRoom.slug,
+                classes: newRoom.classes,
+                phase: player.phase
+              })
+            }
+          }
         }
 
-
-        /*同じ部屋の人数分村人を増やす
+        //リロードの場合、元の部屋の情報を与える
         const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
-        console.log("ほかのひと探したよ",players)
-        newRoom.classes["村人"] = players.length
-        newRoom = await newRoom.update()
-        console.log("村人足したよ",newRoom)
-
-         */
-
-
-        //全員に変化を伝える
-        const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
-        for(let player of players){
-          console.log("フォー",player)
-          io.to(player.socketSlug).emit("/ws/v1/room/entered",{
-            users: players,
-            roomSlug: newRoom.slug,
-            classes: newRoom.classes,
-            phase: player.phase
-          })
-        }
-      }
-
-      //リロードの場合、元の部屋の情報を与える
-      const players = await Player.equalTo("roomSlug",player.roomSlug).fetchAll()
-      console.log("ほかのひと探したよ2",players)
-      let man = await Player.equalTo("slug",req.body.userSlug).fetch()
-      if(man.class == "人狼"){
-        if(man.phase == "NightResult" || man.phase == "NightEnd"){
-          res.json({
-            users: players,
-            roomSlug: newRoom.slug,
-            classes: newRoom.classes,
-            phase: man.phase,
-            class: man.class,
-            new_class: man.new_class,
-            target: man.target
-          })
-        }else{
-          res.json({
-            users: players,
-            roomSlug: newRoom.slug,
-            classes: newRoom.classes,
-            phase: man.phase,
-            class: man.class
-          })
-        }
-      }else{
-        if(man.phase == "NightResult" || man.phase == "NightEnd"){
-          if(man.target == "field") {
-            let classroom = await Room.equalTo("slug", req.body.roomSlug).fetch()
+        console.log("ほかのひと探したよ2",players)
+        let man = await Player.equalTo("slug",req.body.userSlug).fetch()
+        if(man.class == "人狼"){
+          if(man.phase == "NightResult" || man.phase == "NightEnd"){
             res.json({
               users: players,
               roomSlug: newRoom.slug,
@@ -214,56 +198,78 @@ app.post('/api/v1/room/enter', function(req, res){
               phase: man.phase,
               class: man.class,
               new_class: man.new_class,
-              target: {field: true, class: classroom.field}
+              target: man.target
             })
           }else{
-            let tag = await Player.equalTo("slug",man.target).fetch()
+            res.json({
+              users: players,
+              roomSlug: newRoom.slug,
+              classes: newRoom.classes,
+              phase: man.phase,
+              class: man.class
+            })
+          }
+        }else{
+          if(man.phase == "NightResult" || man.phase == "NightEnd"){
+            if(man.target == "field") {
+              let classroom = await Room.equalTo("slug", req.body.roomSlug).fetch()
+              res.json({
+                users: players,
+                roomSlug: newRoom.slug,
+                classes: newRoom.classes,
+                phase: man.phase,
+                class: man.class,
+                new_class: man.new_class,
+                target: {field: true, class: classroom.field}
+              })
+            }else{
+              let tag = await Player.equalTo("slug",man.target).fetch()
+              res.json({
+                users: players,
+                roomSlug: newRoom.slug,
+                classes: newRoom.classes,
+                phase: man.phase,
+                class: man.class,
+                new_class: man.new_class,
+                target: {field:false,slug:tag.slug,name:tag.name,class:tag.class}
+
+              })
+            }
+          }else if(man.phase == "DayResult") {
+            let vot = await Player.equalTo("slug", player.vote).fetch()
             res.json({
               users: players,
               roomSlug: newRoom.slug,
               classes: newRoom.classes,
               phase: man.phase,
               class: man.class,
-              new_class: man.new_class,
-              target: {field:false,slug:tag.slug,name:tag.name,class:tag.class}
-
+              vote: {slug: vot.slug, name: vot.name}
+            })
+          }else if(man.phase == "GameResult") {
+            let classroom = await Room.equalTo("slug",req.body.roomSlug).fetch()
+            res.json({
+              users: players,
+              roomSlug: newRoom.slug,
+              classes: newRoom.classes,
+              phase: man.phase,
+              class: man.class,
+              result:classroom.result
+            })
+          }else{
+            res.json({
+              users: players,
+              roomSlug: newRoom.slug,
+              classes: newRoom.classes,
+              phase: man.phase,
+              class: man.class
             })
           }
-        }else if(man.phase == "DayResult") {
-          let vot = await Player.equalTo("slug", player.vote).fetch()
-          res.json({
-            users: players,
-            roomSlug: newRoom.slug,
-            classes: newRoom.classes,
-            phase: man.phase,
-            class: man.class,
-            vote: {slug: vot.slug, name: vot.name}
-          })
-        }else if(man.phase == "GameResult") {
-          let classroom = await Room.equalTo("slug",req.body.roomSlug).fetch()
-          res.json({
-            users: players,
-            roomSlug: newRoom.slug,
-            classes: newRoom.classes,
-            phase: man.phase,
-            class: man.class,
-            result:classroom.result
-          })
-        }else{
-          res.json({
-            users: players,
-            roomSlug: newRoom.slug,
-            classes: newRoom.classes,
-            phase: man.phase,
-            class: man.class
-          })
         }
-      }
 
-      //部屋が存在しない場合エラーを返す
-    }else{
-      res.status(500).json({})
-    }
+        //部屋が存在しない場合エラーを返す
+      }else{
+        res.status(500).json({})
+      }
   })().catch(function (){
     res.status(500).json({})
   })
@@ -327,6 +333,7 @@ io.on('connection',function(socket){
 
       var items=[]
       console.log(classroom.classes)
+
       //配列に役職を加える
       for(let key in classroom.classes){
         console.log(classroom.classes[key])
@@ -643,6 +650,8 @@ io.on('connection',function(socket){
     (async()=>{
 
       let classroom = await Room.equalTo("slug",change.roomSlug).fetch()
+      classroom.set("enableFlag","True")
+      let result = await classroom.update()
 
       //送信処理（全員）
       let finisher = await Player.equalTo("roomSlug",change.roomSlug).fetchAll()
