@@ -137,6 +137,8 @@ app.post('/api/v1/room/enter', function(req, res){
       console.log(player)
       const oldRoomSlug = player.roomSlug
 
+
+
       //リロードか新たな参加かを判断
       if(oldRoomSlug !== newRoom.slug){
         console.log("前",oldRoomSlug)
@@ -144,6 +146,14 @@ app.post('/api/v1/room/enter', function(req, res){
         player.set("roomSlug",req.body.roomSlug)
         player.set("phase","GameWaiting")
         player = await player.update()
+
+        //元いた部屋が無人になった場合に削除
+        let join_player = await Player.equalTo("roomSlug",oldRoomSlug).fetchAll()
+        console.log()
+        if (join_player.length == 0){
+          let room = await Room.equalTo("slug", oldRoomSlug).fetch()
+          room.delete()
+        }
 
 
         /*同じ部屋の人数分村人を増やす
