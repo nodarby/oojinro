@@ -609,7 +609,7 @@ io.on('connection',function(socket){
           man.set("phase", "GameResult")
           let socketresult = await man.update()
           io.to(man.socketSlug).emit("/ws/v1/game/response_game_result", {
-          result:{phase: man.phase, executed: executed, winside: winside, winner:winner, player:players}
+          result:{phase: man.phase, executed: executed, winside: winside, winner:winner, player:result_players}
           })
         }
 
